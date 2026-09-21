@@ -1,0 +1,1 @@
+hg.BlurBackground = hg.DrawBlur
