@@ -22,7 +22,11 @@ local gordon_hide = {
 }
 
 hook.Add("HUDShouldDraw", "homigrad", function(name)
-	if hide[name] or lply.PlayerClassName and lply.PlayerClassName == "Gordon" and gordon_hide[name] then
+	if hide[name] then
+		return false
+	end
+
+	if IsValid(lply) and lply.PlayerClassName and lply.PlayerClassName == "Gordon" and gordon_hide[name] then
 		return false
 	end
 end)
@@ -208,7 +212,8 @@ local surface, draw, hook, IsColor, IsValid, math, input = surface, draw, hook, 
 local function CreateRadialMenu(options_arg, bAutoClose)
 	local sizeX, sizeY = ScrW(), ScrH()
 	hg.radialOptions = {}
-	local paining = lply.organism and lply.organism.pain and (lply.organism.pain > 100 or lply.organism.brain > 0.2) or false
+	if not IsValid(lply) then lply = LocalPlayer() end
+	local paining = IsValid(lply) and lply.organism and lply.organism.pain and (lply.organism.pain > 100 or lply.organism.brain > 0.2) or false
 	
 	if !options_arg then
 		local functions = hook.GetTable()["radialOptions"]
@@ -372,7 +377,7 @@ local function CreateRadialMenu(options_arg, bAutoClose)
 				draw.DrawText(txt, "HomigradFont", scrW / 2 + math.sin(a) * r * 0.75, scrH / 2 + math.cos(a) * r * 0.75, colWhite, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			end
 		end
-		if !paining then
+		if !paining and IsValid(lply) then
 			draw.SimpleText(lply:GetPlayerName(),"HomigradFontGigantoNormous",scrW * 0.0215* viewLerp,scrH * 0.042, colBack, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			draw.SimpleText( ( (lply.role and lply.role.name) or ""),"HomigradFontGigantoNormous" ,scrW * 0.0215 * viewLerp,scrH * 0.098, colBack, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
@@ -437,6 +442,7 @@ end)
 
 hook.Add( "PlayerBindPress", "PlayerBindPressExample2huy", function( ply, bind, pressed )
 	if string.find(bind, "+menu") then
+		if not IsValid(lply) then return end
 
 		if (lply.organism and lply.organism.otrub) then
 			return (bind == "+menu") or nil
@@ -457,6 +463,7 @@ hook.Add( "PlayerBindPress", "PlayerBindPressExample2huy", function( ply, bind, 
 end)
 
 hook.Add("Think", "hg-radial-menu", function()
+	if not IsValid(lply) then lply = LocalPlayer() if not IsValid(lply) then return end end
 	if (lply.organism and lply.organism.otrub) then
 
 		if IsValid(menuPanel) then
@@ -523,6 +530,7 @@ local function dropWeapon()
 end
 
 hook.Add("radialOptions", "77", function()
+	if not IsValid(lply) then return end
 	local organism = lply.organism or {}
 	if not organism.otrub and IsValid(lply:GetActiveWeapon()) and lply:GetActiveWeapon():GetClass() ~= "weapon_hands_sh" then
 		local tbl = {dropWeapon, "Drop Weapon"}
@@ -597,10 +605,11 @@ local vector_one = Vector( 1, 1, 1 )
 
 
 hook.Add("HUDPaint","Identifier",function()
+	if not IsValid(lply) then return end
 	if lply.organism and lply.organism.otrub then return end
 	if !lply:Alive() then return end
-	if lply:GetNetVar("disappearance", nil) then return end 
-	
+	if lply:GetNetVar("disappearance", nil) then return end
+
 	local trace = hg.eyeTrace(lply)
 	
 	if not trace then return end
@@ -633,10 +642,11 @@ local hg_hints = ConVarExists("hg_hints") and GetConVar("hg_hints") or CreateCli
 local HintBackgroundColor = Color( 0, 0, 0, 200 )
 
 hook.Add("HUDPaint","EntHints",function()
-	if not hg_hints:GetBool() then return end 
+	if not hg_hints:GetBool() then return end
+	if not IsValid(lply) then return end
 	if lply.organism and lply.organism.otrub then return end
 	if !lply:Alive() then return end
-	
+
 	local trace = hg.eyeTrace(lply)
 
 	if not trace then return end
