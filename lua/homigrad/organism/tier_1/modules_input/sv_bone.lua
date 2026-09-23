@@ -99,7 +99,7 @@ local function legs(org, bone, dmg, dmgInfo, key, boneindex, dir, hit, ricochet)
 
 		--if org.isPly and !org[key.."amputated"] then org.owner:Notify(broke_leg[math.random(#broke_leg)], 1, "broke"..key, 1, nil, nil) end
 
-		timer.Simple(0, function() hg.LightStunPlayer(org.owner,2) end)
+		if dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) then timer.Simple(0, function() if IsValid(org.owner) then hg.LightStunPlayer(org.owner,2) end end) end
 		org.owner:EmitSound("bones/bone"..math.random(8)..".mp3", 75, 100, 1, CHAN_AUTO)
 		//broken
 	else
@@ -113,7 +113,7 @@ local function legs(org, bone, dmg, dmgInfo, key, boneindex, dir, hit, ricochet)
 
 		--if org.isPly and !org[key.."amputated"] then org.owner:Notify(dislocated_leg[math.random(#dislocated_leg)], 1, "dislocated"..key, 1, nil, nil) end
 
-		timer.Simple(0, function() hg.LightStunPlayer(org.owner,2) end)
+		if dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) then timer.Simple(0, function() if IsValid(org.owner) then hg.LightStunPlayer(org.owner,2) end end) end
 		org.owner:EmitSound("bones/bone"..math.random(8)..".mp3", 75, 100, 1, CHAN_AUTO)
 		//dislocated
 	end
@@ -238,8 +238,8 @@ input_list.jaw = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet
 		if org.isPly then org.owner:Notify(jaw_dislocated_msg[math.random(#jaw_dislocated_msg)], true, "jaw", 2) end
 	end
 
-	if dmg > 0.2 then
-		if org.isPly then timer.Simple(0, function() hg.LightStunPlayer(org.owner,1 + dmg) end) end
+	if dmg > 0.2 and dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) then
+		if org.isPly then timer.Simple(0, function() if IsValid(org.owner) then hg.LightStunPlayer(org.owner,1 + dmg) end end) end
 	end
 
 	return result, vecrand
@@ -294,10 +294,10 @@ input_list.skull = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricoch
 		end)
 	end
 
-	if dmg > 0.4 then
+	if dmg > 0.4 and dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) then
 		if org.isPly then
 			timer.Simple(0, function()
-				hg.LightStunPlayer(org.owner,1 + dmg)
+				if IsValid(org.owner) then hg.LightStunPlayer(org.owner,1 + dmg) end
 			end)
 		end
 	end

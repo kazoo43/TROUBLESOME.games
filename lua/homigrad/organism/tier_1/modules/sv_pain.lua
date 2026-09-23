@@ -86,7 +86,7 @@ module[2] = function(owner, org, timeValue)
 		--org.shock = math.Approach(org.shock, 50, timeValue * org.tranquilizer * 5)
 		org.consciousness = math.Approach(org.consciousness, 0, timeValue / 30 * org.tranquilizer)
 	else
-		org.consciousness = math.Approach(org.consciousness, org.blood < 3000 and (org.blood - 2500) / 500 or 1, timeValue / 15)
+		org.consciousness = math.Approach(org.consciousness, 1, timeValue / 15)
 	end
 
 	if org.consciousness < 0.1 then
@@ -107,7 +107,7 @@ module[2] = function(owner, org, timeValue)
 
 	//org.painkiller = Approach(org.painkiller, 0, timeValue / 240 * (org.naloxone * 25 + 1))
 
-	if hg.organism.paincheck(org) then
+	if hg.organism.paincheck(org) or org.shock >= 100 then
 		org.needotrub = true
 	end
 	

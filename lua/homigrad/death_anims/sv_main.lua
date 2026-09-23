@@ -6,16 +6,31 @@ local function RecordInfo(ply, hit, dmgInfo)
     if not ply:IsPlayer() then return end
     if not ply:Alive() then return end
     local kind, raw = TS_DeathAnim.ClassifyType(dmgInfo, ply)
+    local faceYaw = nil
+    if dmgInfo then
+        if dmgInfo.GetAttacker then
+            local attacker = dmgInfo:GetAttacker()
+            if IsValid(attacker) and attacker ~= ply then
+                local d = attacker:GetPos() - ply:GetPos()
+                if d:LengthSqr() > 1 then faceYaw = d:Angle().yaw end
+            end
+        end
+        if not faceYaw and dmgInfo.GetDamageForce then
+            local f = dmgInfo:GetDamageForce()
+            if f and f:LengthSqr() > 1 then faceYaw = (f * -1):Angle().yaw end
+        end
+    end
     ply.tsDeathInfo = {
         hit = hit or HITGROUP_GENERIC,
         kind = kind,
         raw = raw,
         flags = TS_DeathAnim.GetHitFlags(ply, hit, dmgInfo),
+        faceYaw = faceYaw,
         time = CurTime(),
         standing = TS_DeathAnim.CaptureStanding(ply)
     }
 end
-function TS_DeathAnim.Animate(rag, seq, cycleEnd)
+function TS_DeathAnim.Animate(rag, seq, cycleEnd, rate, yaw)
     if not IsValid(rag) then return nil end
     if rag:GetClass() ~= "prop_ragdoll" then return nil end
     local anim = ents.Create("ts_death_anim")
@@ -30,12 +45,12 @@ function TS_DeathAnim.Animate(rag, seq, cycleEnd)
             if h > 1 then scale = h / 67.01953125 end
         end
     end
-    if scale <= 0 or scale > 3 then scale = 1 end
+    if scale < 0.8 or scale > 1.25 then scale = 1 end
     anim:Setup(rag, seq, {
         pos = rag:GetPos(),
-        angles = rag:GetAngles(),
+        angles = Angle(0, yaw or rag:GetAngles().yaw, 0),
         cycleEnd = cycleEnd or TS_DeathAnim.CycleEnd,
-        rate = 1,
+        rate = rate or 1,
         animModel = TS_DeathAnim.AnimModel,
         scale = scale
     })
@@ -69,9 +84,14 @@ function TS_DeathAnim.TryAnimate(ply)
     if IsValid(pelvisPhys) and pelvisPhys:GetVelocity():Length() > 600 then if dbg then print("[TS-DeathAnim] skip fast") end return end
     if IsValid(rag.TS_DeathAnim) then return end
     if not TS_DeathAnim.HasGround(rag) then if dbg then print("[TS-DeathAnim] skip noground") end return end
-    local seq, frac = TS_DeathAnim.Select(info.hit, info.kind, info.flags)
+    local seq, frac, rate = TS_DeathAnim.Select(info.hit, info.kind, info.flags)
     if not seq then if dbg then print("[TS-DeathAnim] skip noseq") end return end
-    TS_DeathAnim.Animate(rag, seq, frac)
+    local yaw = nil
+    if info.faceYaw then
+        yaw = info.faceYaw
+        if info.flags and info.flags.back then yaw = yaw + 180 end
+    end
+    TS_DeathAnim.Animate(rag, seq, frac, rate, yaw)
 end
 hook.Add("HomigradDamage", "TS_DeathAnim_Track", function(ply, dmgInfo, hitgroup)
     RecordInfo(ply, hitgroup, dmgInfo)

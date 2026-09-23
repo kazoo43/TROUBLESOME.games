@@ -12,6 +12,9 @@ local SHADOW = {
 local REACH_SQR = 2304
 local BLEND_TIME = 0.3
 local ABORT_FRACTION = 0.5
+local CONTACT_TRACE = 30
+local CONTACT_DIST = 14
+local MIN_CONTACT_CYCLE = 0.3
 local function Dbg(msg)
     local cv = GetConVar("ts_deathanim_debug")
     if cv and cv:GetBool() then print(msg) end
@@ -41,7 +44,6 @@ function ENT:Setup(rag, seq, opts)
     end
     self:SetPos(opts.pos or rag:GetPos())
     self:SetAngles(opts.angles or rag:GetAngles())
-    self.GroundZ = self:GetPos().z
     local seqId = self:LookupSequence(seq)
     if not seqId or seqId < 0 then self:Remove() return end
     self:ResetSequence(seqId)
@@ -53,15 +55,31 @@ function ENT:Setup(rag, seq, opts)
     self.DieAt = CurTime() + dur + 1
     local pelvisAnim = self:LookupBone("ValveBiped.Bip01_Pelvis")
     local pelvisRag = rag:LookupBone("ValveBiped.Bip01_Pelvis")
+    local dx, dy = 0, 0
     if pelvisAnim and pelvisRag then
         local animPos = self:GetBonePosition(pelvisAnim)
         local physPelvis = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(pelvisRag))
         if animPos and IsValid(physPelvis) then
-            self:SetPos(self:GetPos() + (physPelvis:GetPos() - animPos))
-            self.GroundZ = self:GetPos().z
+            local delta = physPelvis:GetPos() - animPos
+            if math.abs(delta.x) < 24 then dx = delta.x end
+            if math.abs(delta.y) < 24 then dy = delta.y end
+            Dbg("[TS-DeathAnim] align dx=" .. dx .. " dy=" .. dy .. " dz_raw=" .. delta.z)
         end
     end
-    Dbg("[TS-DeathAnim] start model=" .. rag:GetModel() .. " seq=" .. seq)
+    local base = self:GetPos() + Vector(dx, dy, 0)
+    local gtr = util.TraceLine({
+        start = rag:GetPos() + Vector(0, 0, 10),
+        endpos = rag:GetPos() - Vector(0, 0, 100),
+        mask = MASK_SOLID,
+        filter = {self, rag}
+    })
+    if gtr.Hit then
+        self:SetPos(Vector(base.x, base.y, gtr.HitPos.z))
+    else
+        self:SetPos(base)
+    end
+    self.GroundZ = self:GetPos().z
+    Dbg("[TS-DeathAnim] start model=" .. rag:GetModel() .. " seq=" .. seq .. " scale=" .. (opts.scale or 1))
     self.Birth = CurTime()
     self.Locked = true
     for i = 0, rag:GetPhysicsObjectCount() - 1 do
@@ -143,6 +161,23 @@ function ENT:OverVoid()
     })
     return not tr.Hit
 end
+function ENT:PelvisGroundDist()
+    local rag = self.Ragdoll
+    if not IsValid(rag) then return nil end
+    local pb = rag:LookupBone("ValveBiped.Bip01_Pelvis")
+    if not pb then return nil end
+    local phys = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(pb))
+    if not IsValid(phys) then return nil end
+    local start = phys:GetPos()
+    local tr = util.TraceLine({
+        start = start,
+        endpos = start - Vector(0, 0, CONTACT_TRACE),
+        mask = MASK_SOLID,
+        filter = {self, rag}
+    })
+    if not tr.Hit then return nil end
+    return start.z - tr.HitPos.z
+end
 function ENT:ClearRef()
     local rag = self.Ragdoll
     if IsValid(rag) and rag.TS_DeathAnim == self then
@@ -177,6 +212,15 @@ function ENT:Think()
         local far, total = self:DriveRagdoll(rag, dt)
         if total > 0 and far > total * ABORT_FRACTION then
             Dbg("[TS-DeathAnim] abort far=" .. far .. " total=" .. total)
+            self:ClearRef()
+            self:Remove()
+            return
+        end
+    end
+    if not self.Locked and self:GetCycle() > MIN_CONTACT_CYCLE then
+        local gd = self:PelvisGroundDist()
+        if gd and gd <= CONTACT_DIST then
+            Dbg("[TS-DeathAnim] ground contact")
             self:ClearRef()
             self:Remove()
             return

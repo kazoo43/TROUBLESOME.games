@@ -41,9 +41,10 @@ input_list.liver = function(org, bone, dmg, dmgInfo)
 	
 	org.liver = math.min(org.liver + dmg, 1)
 	local harmed = (org.liver - oldDmg)
-	if org.analgesia < 0.4 and harmed >= 0.2 then
+	if org.analgesia < 0.4 and harmed >= 0.2 and dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) then
 		timer.Simple(0, function()
-			if harmed > 0 then -- wtf? whatever
+			if not IsValid(org.owner) then return end
+			if harmed > 0 then
 				hg.StunPlayer(org.owner,2)
 			else
 				hg.LightStunPlayer(org.owner,2)

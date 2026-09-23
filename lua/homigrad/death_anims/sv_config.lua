@@ -2,6 +2,19 @@ TS_DeathAnim = TS_DeathAnim or {}
 TS_DeathAnim.CycleEnd = 0.9
 TS_DeathAnim.GroundCheck = 60
 TS_DeathAnim.InfoTimeout = 5
+TS_DeathAnim.HeadRate = 1.15
+TS_DeathAnim.ClubEndMul = 0.5
+TS_DeathAnim.CustomEndPos = {
+    ["bd_death_head_short_03"] = 15,
+    ["bd_death_head_single_02"] = 25,
+    ["bd_death_head_single_03"] = 25,
+    ["bd_death_head_short_01"] = 35,
+    ["ex_mix_headshot_2"] = 35,
+    ["ex_mix_headshot_5"] = 35,
+    ["bd_death_head_multi_01"] = 15,
+    ["bd_death_head_multi_02"] = 15,
+    ["bd_death_head_multi_03"] = 15
+}
 TS_DeathAnim.EnableConvar = CreateConVar("ts_deathanim_enable", 1, FCVAR_ARCHIVE, "Enable standing death animations")
 TS_DeathAnim.ChanceConvar = CreateConVar("ts_deathanim_chance", 1, FCVAR_ARCHIVE, "Chance a standing death plays an animation")
 TS_DeathAnim.DebugConvar = CreateConVar("ts_deathanim_debug", 0, FCVAR_ARCHIVE, "Log death animation selection and driver events")
@@ -100,11 +113,19 @@ function TS_DeathAnim.Select(hit, kind, flags)
     if not list or #list == 0 then return nil end
     local pick = list[math.random(#list)]
     local pct = 100
-    if TS_DeathAnim.EndPos and TS_DeathAnim.EndPos[pick] then pct = TS_DeathAnim.EndPos[pick] end
+    if TS_DeathAnim.CustomEndPos and TS_DeathAnim.CustomEndPos[pick] then
+        pct = TS_DeathAnim.CustomEndPos[pick]
+    elseif TS_DeathAnim.EndPos and TS_DeathAnim.EndPos[pick] then
+        pct = TS_DeathAnim.EndPos[pick]
+    end
     if pct < 1 then pct = 1 end
     if pct > 100 then pct = 100 end
-    if dbg then print("[TS-DeathAnim] pick=" .. pick .. " cat=" .. cat .. " kind=" .. kind .. " hit=" .. hit) end
-    return pick, pct / 100
+    if cat == "club" then pct = pct * (TS_DeathAnim.ClubEndMul or 0.5) end
+    if pct < 1 then pct = 1 end
+    local rate = 1
+    if cat == "bd_head" then rate = TS_DeathAnim.HeadRate or 1 end
+    if dbg then print("[TS-DeathAnim] pick=" .. pick .. " cat=" .. cat .. " kind=" .. kind .. " hit=" .. hit .. " frac=" .. (pct / 100) .. " rate=" .. rate) end
+    return pick, pct / 100, rate
 end
 function TS_DeathAnim.HasGround(rag)
     if not IsValid(rag) then return false end

@@ -820,8 +820,8 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 	
 		org.shock_turn = 10 * (!org.otrub and 1 or 0.1)
 	
-		if org.shock > org.shock_turn * 1.5 * analgesiaMul * painkillerMul then
-			timer.Simple(0, function() hg.Fake(org.owner) end)
+		if dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) and org.shock > org.shock_turn * 1.5 * analgesiaMul * painkillerMul then
+			timer.Simple(0, function() if IsValid(org.owner) then hg.Fake(org.owner) end end)
 		end
 
 		if bullet and hg.ammotypes_reverted[bullet.AmmoType] and hg.ammotypes_reverted[bullet.AmmoType].BulletSettings.tranquilizer then
@@ -906,7 +906,7 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 			
 			hg.AddForceRag(ply, bone, force * 0.5, 0.5)
 
-			if ply.AddForceRag[bone][2] and ply.AddForceRag[bone][2]:Length() > 4500 then //по-моему какие-то большие значения, не?
+			if dmgInfo:IsDamageType(DMG_BLAST + DMG_FALL) and ply.AddForceRag[bone][2] and ply.AddForceRag[bone][2]:Length() > 4500 then
 				if ply.AddForceRag[bone][2]:Length() > 7000 then
 					hg.StunPlayer(ply, 0.5)
 					hg.LightStunPlayer(ply, 2)

@@ -99,7 +99,7 @@ end)
 
 hook.Add("Should Fake Up", "organism", function(ply)
 	local org = ply.organism
-	if org.otrub or org.fake or (org.lleg == 1 and org.rleg == 1) and org.berserk <= 0.3 or (org.blood < 2900) or org.consciousness <= 0.4 then
+	if org.otrub or org.fake or (org.lleg == 1 and org.rleg == 1) and org.berserk <= 0.3 or org.consciousness <= 0.4 then
 		return false
 	end
 end)
@@ -466,7 +466,6 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 	org.canmovehead = not org.otrub
 	
 	if not (org.canmove and org.canmovehead and (org.stun - CurTime()) < 0) then org.needfake = true end
-	if (org.blood < 2700) then org.needfake = true end
 
 	local just_went_uncon = not org.otrub and org.needotrub
 
@@ -535,6 +534,12 @@ hook.Add("Org Think", "Main", function(owner, org, timeValue)
 	if owner:IsPlayer() and (org.healthRegen or 0) < CurTime() then
 		org.healthRegen = CurTime() + 30
 		owner:SetHealth(math.min(owner:GetMaxHealth(), owner:Health() + math.max(1.5 - org.hurt, 0)))
+	end
+
+	if isPly and owner:Alive() and not org.godmode then
+		local bloodcap = math.floor(owner:GetMaxHealth() * math.Clamp((org.blood - 2500) / 2500, 0, 1))
+		if owner:Health() > bloodcap then owner:SetHealth(bloodcap) end
+		if bloodcap <= 0 then owner:Kill() end
 	end
 
 	org.health = owner:Health()

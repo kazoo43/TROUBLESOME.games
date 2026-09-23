@@ -100,7 +100,7 @@ module[2] = function(owner, org, mulTime)
 		org.o2[1] = math.max(org.o2[1] - mulTime * 5,0)
 	end
 
-	org.consciousness = math.min(org.consciousness, math.min(org.blood / 3000, 1) * math.Clamp(((org.temperature < 30 and org.temperature - 30 or 0) * 0.25 + 1), 0.25, 1))
+	org.consciousness = math.min(org.consciousness, math.Clamp(((org.temperature < 30 and org.temperature - 30 or 0) * 0.25 + 1), 0.25, 1))
 
 	local beatsPerSecond = max(min(60 / math.max(org.pulse,2) / (org.bleed / 15), 7), 0.3)
 	time = CurTime()
@@ -172,8 +172,6 @@ module[2] = function(owner, org, mulTime)
 		end
 	end
 	bleedoutspeed2 = bleedoutspeed2 / next_arterypump
-
-	if org.blood < (2400 / (adrenaline / 3 + 1)) * ((math.cos(CurTime()/2) + 1) / 2 * 0.1 + 1) then org.needotrub = true end
 
 	local bleed = org.internalBleed / 14 -- + org.lungsR[3] + org.lungsL[3]
 	org.internalBleed = math.Approach(org.internalBleed, 0, org.internalBleedHeal > 0 and mulTime / 2 or mulTime / 55)
