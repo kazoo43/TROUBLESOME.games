@@ -1456,10 +1456,7 @@ local function velocityDamage(ent, data)
 		if hitgroup == HITGROUP_RIGHTARM and (dmg * 2 > 0.2) then hg.organism.input_list.rarmup(org, bone, dmg * 1 * math.Rand(1, 2), dmgInfo) end
 		if hitgroup == HITGROUP_CHEST and (dmg * 3 > 0.25) then hg.organism.input_list.chest(org, bone, dmg * 3, dmgInfo) end
 		if hitgroup == HITGROUP_STOMACH and (dmg * 3 > 0.25) then hg.organism.input_list.pelvis(org, bone, dmg * 3, dmgInfo) end
-		local physAng = data.PhysObject:GetAngles()
 		
-		if hitgroup == HITGROUP_STOMACH and physAng:Forward():Dot(data.HitNormal) > 0.6 then hg.organism.input_list.spine1(org, bone, dmg * (math.random(3) > 1 and 1 or 0) * 3, dmgInfo) end -- | И В ПРАВДУ ПОЧЕМУ У НАС СПИНА ЛОМАЕТСЯ ОТ ПАДЕНИЯ НА ГРУДЬ ИЛИ ЖИВОТ...
-		if hitgroup == HITGROUP_CHEST and physAng:Forward():Dot(data.HitNormal) > 0.6 then hg.organism.input_list.spine2(org, bone, dmg * (math.random(3) > 1 and 1 or 0) * 3, dmgInfo) end
 
 
 		--print(dmg * 3, dmg * 80)
@@ -1481,19 +1478,12 @@ local function velocityDamage(ent, data)
 			
 			org.consciousness = math.Approach(org.consciousness, 0, dmg * 20 * (hadhelmet and 0.2 or 1))
 			
-			local neck_not_broken = org.spine3 < 0.8
 			
-			//if dmg > 0.5 then
-				hg.organism.input_list.spine3(org, bone, dmg * (math.random(4) == 1 and 1 or 0) * 3 * (hadhelmet and 0.5 or 1), dmgInfo)
-			//end
 			if dmg * 10 > 0.5 and !hadhelmet then
 				org.otrub = true
 				org.shock = org.shock + 10
 			end
 
-			if neck_not_broken and org.spine3 >= 0.8 then
-				hg.BreakNeck(ent)
-			end
 		end
 	else
 		local sfd = org.fakePlayer and ent or ply
@@ -1556,7 +1546,6 @@ function hg.BreakNeck(ent)
 	local ply = ent:IsRagdoll() and hg.RagdollOwner(ent) or ent
 	if ply:Alive() then ply:Kill() end
 
-	ent.organism.spine3 = 1
 	ent:EmitSound("neck_snap_01.wav", 60, 100, 1, CHAN_AUTO)
 	
 	timer.Simple(0.1, function()

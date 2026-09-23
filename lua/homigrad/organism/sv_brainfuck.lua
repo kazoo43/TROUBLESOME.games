@@ -143,30 +143,26 @@ local function processFencing(rag, fade)
 	local force = 350 * fade
 	local pulse = 0.85 + math_sin(CurTime() * 4) * 0.15
 
-	if org.spine2 < hg.organism.fake_spine2 and org.spine3 < hg.organism.fake_spine3 then
-		for i = 1, #fencingArmBones do
-			local d = fencingArmBones[i]
-			local bone, targetBone = rag:LookupBone(d[1]), rag:LookupBone(d[2])
-			if not bone or not targetBone then continue end
-			local phys = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(bone))
-			if not IsValid(phys) then continue end
-			local bonePos, targetPos = rag:GetBonePosition(bone), rag:GetBonePosition(targetBone)
-			local dir = (targetPos - bonePos):GetNormalized()
-			phys:ApplyForceCenter((dir * force * d[3] * pulse) + VectorRand(-15, 15) * fade)
-		end
+	for i = 1, #fencingArmBones do
+		local d = fencingArmBones[i]
+		local bone, targetBone = rag:LookupBone(d[1]), rag:LookupBone(d[2])
+		if not bone or not targetBone then continue end
+		local phys = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(bone))
+		if not IsValid(phys) then continue end
+		local bonePos, targetPos = rag:GetBonePosition(bone), rag:GetBonePosition(targetBone)
+		local dir = (targetPos - bonePos):GetNormalized()
+		phys:ApplyForceCenter((dir * force * d[3] * pulse) + VectorRand(-15, 15) * fade)
 	end
 	
-	if org.spine2 < hg.organism.fake_spine2 and org.spine3 < hg.organism.fake_spine3 and org.spine1 < hg.organism.fake_spine1 then
-		for i = 1, #fencingLegBones do
-			local d = fencingLegBones[i]
-			local bone, targetBone = rag:LookupBone(d[1]), rag:LookupBone(d[2])
-			if not bone or not targetBone then continue end
-			local phys = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(bone))
-			if not IsValid(phys) then continue end
-			local bonePos, targetPos = rag:GetBonePosition(bone), rag:GetBonePosition(targetBone)
-			local dir = (targetPos - bonePos):GetNormalized()
-			phys:ApplyForceCenter((dir * force * d[3] * pulse) + VectorRand(-10, 10) * fade)
-		end
+	for i = 1, #fencingLegBones do
+		local d = fencingLegBones[i]
+		local bone, targetBone = rag:LookupBone(d[1]), rag:LookupBone(d[2])
+		if not bone or not targetBone then continue end
+		local phys = rag:GetPhysicsObjectNum(rag:TranslateBoneToPhysBone(bone))
+		if not IsValid(phys) then continue end
+		local bonePos, targetPos = rag:GetBonePosition(bone), rag:GetBonePosition(targetBone)
+		local dir = (targetPos - bonePos):GetNormalized()
+		phys:ApplyForceCenter((dir * force * d[3] * pulse) + VectorRand(-10, 10) * fade)
 	end
 end
 

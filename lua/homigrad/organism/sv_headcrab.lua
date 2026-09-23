@@ -53,7 +53,7 @@ hook.Add("Org Think", "Headcrab",function(owner, org, timeValue)
     if not IsValid(owner) then return end
     if not owner:IsPlayer() or not owner:Alive() then return end
 
-    if org.headcrabon and (org.headcrabon + 30) < CurTime() and org.brain != 1 and owner.organism.spine3 != 1 then
+    if org.headcrabon and (org.headcrabon + 30) < CurTime() and org.brain != 1 then
 		local ent = hg.GetCurrentCharacter(owner) or owner
 		local mul = ((org.headcrabon + 60) - CurTime()) / 60
 		if mul > 0 then

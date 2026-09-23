@@ -439,23 +439,6 @@ properties.Add( "break_limb", {
 		rleg:SetIsCheckable(true)
 		rleg.OnChecked = function(s, checked) self:BreakLimb(ent, 4) end
 
-		local spine1 = submenu:AddOption("Spine 1")
-		spine1:SetRadio(true)
-		spine1:SetChecked(ent.organism.rleg > 0)
-		spine1:SetIsCheckable(true)
-		spine1.OnChecked = function(s, checked) self:BreakLimb(ent, 5) end
-
-		local spine2 = submenu:AddOption("Spine 2")
-		spine2:SetRadio(true)
-		spine2:SetChecked(ent.organism.rleg > 0)
-		spine2:SetIsCheckable(true)
-		spine2.OnChecked = function(s, checked) self:BreakLimb(ent, 6) end
-
-		local spine3 = submenu:AddOption("Spine 3")
-		spine3:SetRadio(true)
-		spine3:SetChecked(ent.organism.rleg > 0)
-		spine3:SetIsCheckable(true)
-		spine3.OnChecked = function(s, checked) self:BreakLimb(ent, 7) end
 	end,
 
 	BreakLimb = function( self, ent, id )
@@ -483,12 +466,6 @@ properties.Add( "break_limb", {
 			hg.organism.input_list.llegup(ent.organism, 0, 1, dmgInfo)
 		elseif limb == 4 then
 			hg.organism.input_list.rlegup(ent.organism, 0, 1, dmgInfo)
-		elseif limb == 5 then
-			hg.organism.input_list.spine1(ent.organism, 0, 1, dmgInfo)
-		elseif limb == 6 then
-			hg.organism.input_list.spine2(ent.organism, 0, 1, dmgInfo)
-		elseif limb == 7 then
-			hg.organism.input_list.spine3(ent.organism, 0, 1, dmgInfo)
 		end
 	end
 } )

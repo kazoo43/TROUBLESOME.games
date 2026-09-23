@@ -572,9 +572,6 @@ elseif SERVER then
     util.AddNetworkString("HEV_DAMAGE")
 
     local CheckBones = {
-        "spine3",
-        "spine2",
-        "spine1",
         "rleg",
         "lleg",
         "rarm",
@@ -722,9 +719,6 @@ elseif SERVER then
                 org.larm = math.max(org.larm - regen, 0)
                 org.chest = math.max(org.chest - regen, 0)
                 org.pelvis = math.max(org.pelvis - regen, 0)
-                org.spine1 = math.max(org.spine1 - regen, 0)
-                org.spine2 = math.max(org.spine2 - regen, 0)
-                org.spine3 = math.max(org.spine3 - regen, 0)
                 org.skull = math.max(org.skull - regen, 0)
             
                 org.liver = math.max(org.liver - regen, 0)

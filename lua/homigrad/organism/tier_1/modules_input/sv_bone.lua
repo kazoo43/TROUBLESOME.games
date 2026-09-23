@@ -29,9 +29,6 @@ local function damageBone(org, bone, dmg, dmgInfo, key, boneindex, dir, hit, ric
 end
 
 local huyasd = {
-	["spine1"] = "I don't feel anything below my hips.",
-	["spine2"] = "I cant't feel or move anything below my torso.",
-	["spine3"] = "I can't move at all. I can barely even breathe.",
 	["skull"] = "My head is aching.",
 }
 
@@ -192,40 +189,6 @@ local function arms(org, bone, dmg, dmgInfo, key, boneindex, dir, hit, ricochet)
 	end
 
 	return result, vecrand
-end
-
-local function spine(org, bone, dmg, dmgInfo, number, boneindex, dir, hit, ricochet)
-	if dmgInfo:IsDamageType(DMG_BLAST) then dmg = dmg / 3 end
-
-	local name = "spine" .. number
-	local name2 = "fake_spine" .. number
-	if org[name] >= hg.organism[name2] then return 0 end
-	local oldDmg = org[name]
-
-	local result, vecrand = damageBone(org, 0.1, isCrush(dmgInfo) and dmg * 2 or dmg * 2, dmgInfo, name, boneindex, dir, hit, ricochet)
-	
-	hg.AddHarmToAttacker(dmgInfo, (org[name] - oldDmg) * 5, "Spine bone damage harm")
-	
-	if (name == "spine3" || name == "spine2") then
-		hg.AddHarmToAttacker(dmgInfo, (org[name] - oldDmg) * 8, "Broken spine harm")
-	end
-
-	if org[name] >= hg.organism[name2] and org.isPly then
-		org.owner:EmitSound("bones/bone"..math.random(8)..".mp3", 75, 100, 1, CHAN_AUTO)
-		if org.owner:IsPlayer() then
-			org.owner:Notify(huyasd[name], true, name, 2)
-		end
-		org.painadd = org.painadd + 25
-	end
-	
-	if dmg > 0.2 then
-		--org.owner:Notify("Your spinal cord is damaged.",true,"spinalcord",4)
-	end
-
-	org.painadd = org.painadd + dmg * 2
-	timer.Simple(0, function() hg.LightStunPlayer(org.owner) end)
-	org.shock = org.shock + dmg * 5
-	return result,vecrand
 end
 
 local jaw_broken_msg = {
@@ -419,6 +382,6 @@ input_list.rlegup = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricoc
 input_list.rlegdown = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return legs(org, bone, dmg, dmgInfo, "rleg", boneindex, dir, hit, ricochet) end
 input_list.llegup = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return legs(org, bone, dmg * 1.25, dmgInfo, "lleg", boneindex, dir, hit, ricochet) end
 input_list.llegdown = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return legs(org, bone, dmg, dmgInfo, "lleg", boneindex, dir, hit, ricochet) end
-input_list.spine1 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return spine(org, bone, dmg, dmgInfo, 1, boneindex, dir, hit, ricochet) end
-input_list.spine2 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return spine(org, bone, dmg, dmgInfo, 2, boneindex, dir, hit, ricochet) end
-input_list.spine3 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return spine(org, bone, dmg, dmgInfo, 3, boneindex, dir, hit, ricochet) end
+input_list.spine1 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return 0 end
+input_list.spine2 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return 0 end
+input_list.spine3 = function(org, bone, dmg, dmgInfo, boneindex, dir, hit, ricochet) return 0 end

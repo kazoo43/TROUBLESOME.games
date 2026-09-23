@@ -238,9 +238,6 @@ local function protec(org, bone, dmg, dmgInfo, placement, armor, scale, scalepro
 			net.Send(org.owner)
 
 			hg.ExplosionDisorientation(org.owner, 6, 6)
-
-			hg.organism.input_list.spine3(org, bone, (dmg/100) * math.Rand(0,0.1), dmgInfo)
-			--org.spine3 = org.spine3 + math.Rand(0.05,1) * dmg / 5
 		end
 	end
 	

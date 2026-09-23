@@ -191,7 +191,7 @@ hook.Add("Think", "Fake", function()
 			hg.SetFreemove(ply, false)
 		end
 
-		if (org.lightstun < CurTime()) and (tracehuy.Hit or ply.FakeRagdoll ~= ragdoll) and org.spine1 < hg.organism.fake_spine1 and org.canmove and ((ply.lastFake and (ply.lastFake) > CurTime()) or ply.FakeRagdoll ~= ragdoll) and !ply.jumpedfake then
+		if (org.lightstun < CurTime()) and (tracehuy.Hit or ply.FakeRagdoll ~= ragdoll) and org.canmove and ((ply.lastFake and (ply.lastFake) > CurTime()) or ply.FakeRagdoll ~= ragdoll) and !ply.jumpedfake then
 			local power = 1
 			inmove = true
 			
@@ -809,7 +809,7 @@ hook.Add("Think", "Fake", function()
 		end
 
 		if ply:KeyDown(IN_DUCK) and !ply:InVehicle() then
-			if org.canmove and org.spine1 < hg.organism.fake_spine1 then
+			if org.canmove then
 				local head = ragdoll:GetPhysicsObject(ragdoll:TranslateBoneToPhysBone(ragdoll:LookupBone("ValveBiped.Bip01_Head1")))
 				local angle = -(-angles2)
 				angle:RotateAroundAxis(angle:Forward(), -90)
