@@ -1055,8 +1055,23 @@ hook.Add("EntityTakeDamage", "homigrad-damage", function(ent, dmgInfo)
 	end--]]
 
 	dmgInfo:ScaleDamage(dmgInfo:IsDamageType(DMG_BURN) and 0.015 or 0.15)
-	
+
 	takeRagdollDamage(ent, dmgInfo)
+
+	if not org.superfighter and not dmgInfo:IsDamageType(DMG_CRUSH) then
+		local healthTarget = ent:IsPlayer() and ent or (IsValid(ply) and ply or nil)
+		if IsValid(healthTarget) and healthTarget:Alive() then
+			local healthDmg = dmg_before
+			if dmgInfo:IsDamageType(DMG_BULLET + DMG_BUCKSHOT) then
+				healthDmg = healthDmg * 0.65
+			end
+			healthTarget:SetHealth(math.max(healthTarget:Health() - healthDmg, 0))
+			if healthTarget:Health() <= 0 then
+				local killEnt = healthTarget
+				timer.Simple(0, function() if IsValid(killEnt) and killEnt:Alive() then killEnt:Kill() end end)
+			end
+		end
+	end
 
 	if org.isPly then
 		hook.Run("Org Think Call", ply, org)
@@ -1335,10 +1350,6 @@ takeRagdollDamage = function(ent, dmgInfo)
 		end
 	end
 	
-	//if not dmgInfo:IsDamageType(DMG_CRUSH) then
-	//	ply:SetHealth(ply:Health() - dmgInfo:GetDamage())
-	//	if ply:Health() <= 0 and ply:Alive() then timer.Simple(0,function() if ply:Alive() then ply:Kill() end end) end
-	//end
 end
 
 hg.takeRagdollDamage = takeRagdollDamage
@@ -1532,10 +1543,11 @@ local function velocityDamage(ent, data)
 		dmghuy = dmghuy * 0.5
 	end
 
-	//if dmghuy >= 1 then
-	//	ply:SetHealth(ply:Health() - dmghuy)
-	//	if ply:Health() <= 0 and ply:Alive() then ply:Kill() end
-	//end
+	local healthOwner = IsValid(ply) and ply or (ent:IsPlayer() and ent:Alive() and ent or nil)
+	if healthOwner and dmghuy >= 1 then
+		healthOwner:SetHealth(math.max(healthOwner:Health() - dmghuy, 0))
+		if healthOwner:Health() <= 0 and healthOwner:Alive() then healthOwner:Kill() end
+	end
 end
 
 function hg.BreakNeck(ent)
