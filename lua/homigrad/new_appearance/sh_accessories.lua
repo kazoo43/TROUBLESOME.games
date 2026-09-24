@@ -1157,7 +1157,7 @@ hg.Accessories = {
             model.mfdoom = ((accessories1 and accessories1[2] == "mfdoom mask") and true or false)
             --print(model.mfdoom)
             model.flex = model.flex or model:GetFlexIDByName("M")
-            model:SetFlexWeight(model.flex, model.mfdoom and 1 or 0)
+            if model.flex then model:SetFlexWeight(model.flex, model.mfdoom and 1 or 0) end
         end,
     },
 

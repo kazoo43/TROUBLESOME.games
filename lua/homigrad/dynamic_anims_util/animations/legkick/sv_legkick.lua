@@ -168,8 +168,16 @@ function PLAYER:LegAttack()
 
                     if ent:IsPlayer() then
                         if math.random(1,5) > 1 then
+                            local kicker = self
                             timer.Simple(0,function()
-                                hg.Fake(ent)
+                                if not IsValid(ent) then return end
+                                if TS_Stagger and TS_Stagger.Stagger then
+                                    TS_Stagger.Stagger(ent, kicker)
+                                elseif hg and hg.StaggerPlayer then
+                                    hg.StaggerPlayer(ent, kicker)
+                                else
+                                    hg.Fake(ent)
+                                end
                             end)
                         end
 

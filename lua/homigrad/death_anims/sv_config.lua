@@ -87,7 +87,9 @@ function TS_DeathAnim.Select(hit, kind, flags)
     elseif kind == "moving" then
         cat = "moving"
     elseif kind == "club" then
-        cat = "club"
+        if hit == HITGROUP_HEAD then
+            if flags.neck then cat = "bd_neck" else cat = "bd_head" end
+        elseif flags.back then cat = "bd_back" else cat = "club" end
     else
         if hit == HITGROUP_HEAD then
             if flags.neck then cat = "bd_neck" else cat = "bd_head" end

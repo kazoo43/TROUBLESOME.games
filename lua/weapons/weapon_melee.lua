@@ -98,6 +98,7 @@ SWEP.Attack2Hit = "snd_jack_hmcd_knifehit.wav"
 SWEP.AttackHitFlesh = "snd_jack_hmcd_knifestab.wav"
 SWEP.Attack2HitFlesh = "snd_jack_hmcd_slash.wav"
 SWEP.DeploySnd = "snd_jack_hmcd_knifedraw.wav"
+SWEP.BackstabSound = "trb_backstab.ogg"
 
 SWEP.setlh = false
 SWEP.setrh = true
@@ -130,6 +131,7 @@ function SWEP:InUse()
 	local ply = self:GetOwner()
 
     if !IsValid(ply) then return false end
+    if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(ply) then return false end
     
     local ent = IsValid(ply.FakeRagdoll) and ply.FakeRagdoll or ply
 	local org = ply.organism
@@ -925,8 +927,39 @@ end
 
 function SWEP:BehindAttack(ent)
     local owner = self:GetOwner()
-
-    return self:IsEntSoft(ent) and ent:IsPlayer() and IsValid(owner) and (owner:GetAimVector():Dot(ent:GetAimVector()) > math.cos(math.rad(45)))
+    if not IsValid(owner) then return false end
+    if not self:IsEntSoft(ent) then return false end
+    local victim = hg.RagdollOwner(ent) or ent
+    if not IsValid(victim) then return false end
+    if victim == owner then return false end
+    if not victim:IsPlayer() and not victim:IsNPC() then return false end
+    local ownerAim = owner.GetAimVector and owner:GetAimVector() or owner:GetForward()
+    if not ownerAim then return false end
+    local rag = ent.IsRagdoll and ent:IsRagdoll() and ent or IsValid(victim.FakeRagdoll) and victim.FakeRagdoll or nil
+    local victimAim = nil
+    if IsValid(rag) then
+        local attId = rag:LookupAttachment("eyes")
+        if attId and attId > 0 then
+            local att = rag:GetAttachment(attId)
+            if att and att.Ang then victimAim = att.Ang:Forward() end
+        end
+        if not victimAim then
+            local bone = rag:LookupBone("ValveBiped.Bip01_Head1")
+            if bone then
+                local mat = rag:GetBoneMatrix(bone)
+                if mat then victimAim = mat:GetAngles():Forward() end
+            end
+        end
+        if not victimAim then victimAim = rag:GetForward() end
+    else
+        victimAim = victim.GetAimVector and victim:GetAimVector() or victim:GetForward()
+    end
+    if not victimAim then return false end
+    local backstabAng = 45
+    if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(victim) then
+        backstabAng = 90
+    end
+    return ownerAim:Dot(victimAim) > math.cos(math.rad(backstabAng))
 end
 
 function SWEP:PunchPlayer(ent, attacktype, trnormal, dmg)
@@ -955,7 +988,7 @@ SWEP.MinSensivity = 0.35
 function SWEP:AlreadyHit(ent, trace, dmg)
     local ply = hg.RagdollOwner(ent)
 
-    if IsValid(ply) and self.HitEnts[#self.HitEnts] == ply then
+    if IsValid(ply) and self.HitEnts and self.HitEnts[#self.HitEnts] == ply then
         return true
     else
         return false
@@ -998,6 +1031,13 @@ function SWEP:BlockingLogic(ent, mul, attacktype, trace)
             
             if perfectblock then
                 ent:EmitSound("tasty/empty.wav")
+                if IsValid(owner) and owner:IsPlayer() then
+                    if TS_Stagger and TS_Stagger.Stagger then
+                        TS_Stagger.Stagger(owner, ent)
+                    elseif hg and hg.StaggerPlayer then
+                        hg.StaggerPlayer(owner, ent)
+                    end
+                end
             end
             
             //ent:EmitSound("physics/metal/metal_computer_impact_bullet3.wav") -- parry sound
@@ -1105,9 +1145,16 @@ function SWEP:CustomThink()
     
     if CLIENT and owner ~= lply then return end
 
+    if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(owner) and self:GetInAttack() then
+        self:SetInAttack(false)
+        self.HitEnts = nil
+        self.FirstAttackTick = false
+        self.AttackHitPlayed = false
+    end
+
     //if SERVER then
         local oldblocking = self:GetBlocking()
-        local blocking = ((CurTime() - self:GetStartedBlocking()) > 1 or oldblocking) and owner.organism and owner.organism.stamina[1] > 90 and !self:GetInAttack() and (self:GetAttackTime() - CurTime() - 0) < 0 and ((self:GetLastBlocked() + 3) < CurTime()) and self:CanBlock() and hg.KeyDown(owner, IN_ATTACK2)
+        local blocking = ((CurTime() - self:GetStartedBlocking()) > 1 or oldblocking) and owner.organism and owner.organism.stamina[1] > 90 and !self:GetInAttack() and (self:GetAttackTime() - CurTime() - 0) < 0 and ((self:GetLastBlocked() + 3) < CurTime()) and self:CanBlock() and hg.KeyDown(owner, IN_ATTACK2) and not (TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(owner))
         --if self:CutDuct() then return end
         self:SetBlocking(blocking)
         
@@ -1163,12 +1210,13 @@ function SWEP:CustomThink()
             local dmg = math.random(self.DamagePrimary - 3, self.DamagePrimary + 3)
 
             local soft = self:IsEntSoft(ent)
+            local isBackstab = false
             if !shouldhit then
                 goto meleeskip1
             end
 
             --self:SetInAttack(false)
-            if SERVER and soft and self.HitEnts[#self.HitEnts] ~= ent then
+            if SERVER and soft and self.HitEnts and self.HitEnts[#self.HitEnts] ~= ent then
                 self:AddDecal()
             end
 
@@ -1222,7 +1270,8 @@ function SWEP:CustomThink()
 
             ent:PrecacheGibs()
 
-            mul = mul * (self:BehindAttack(ent) and 2 or 1)
+            isBackstab = self:BehindAttack(ent)
+            mul = mul * (isBackstab and 2 or 1)
             mul = mul * self:BlockingLogic(ent, mul, false, trace)
 
             dmg = dmg * mul
@@ -1231,11 +1280,14 @@ function SWEP:CustomThink()
                 goto meleeskip1
             end
             
-            if self.HitEnts[#self.HitEnts] ~= ent then
+            if not self.HitEnts or self.HitEnts[#self.HitEnts] ~= ent then
                 self:PlayEffects(trace, false)
+                if isBackstab then
+                    owner:EmitSound(self.BackstabSound or "trb_backstab.ogg", 65, math.random(125, 145))
+                end
             end
             
-            if self.MultiDmg1 or (self.HitEnts[#self.HitEnts] ~= ent) then
+            if self.MultiDmg1 or not self.HitEnts or (self.HitEnts[#self.HitEnts] ~= ent) then
                 //if self:BreakGlass(ent) then
                     //goto meleeskip1
                 //end
@@ -1275,7 +1327,7 @@ function SWEP:CustomThink()
 
             ::meleeskip1::
             
-            if not ent:IsWorld() and self:IsEntSoft(ent) then
+            if self.HitEnts and not ent:IsWorld() and self:IsEntSoft(ent) then
                 self.HitEnts[#self.HitEnts + 1] = ent
             end
 
@@ -1302,11 +1354,12 @@ function SWEP:CustomThink()
 
             local dmg = math.random(self.DamageSecondary - 3, self.DamageSecondary + 3)
 
+            local isBackstab = false
             if !shouldhit then
                 goto meleeskip2
             end
 
-            if SERVER and self:IsEntSoft(ent) and self.DamageType == DMG_SLASH and self.HitEnts[#self.HitEnts] ~= ent then
+            if SERVER and self:IsEntSoft(ent) and self.DamageType == DMG_SLASH and self.HitEnts and self.HitEnts[#self.HitEnts] ~= ent then
                 self:AddDecal()
             end
 
@@ -1321,7 +1374,8 @@ function SWEP:CustomThink()
                 ent:SetVelocity(vec)
             end
 
-            mul = mul * (self:BehindAttack(ent) and 2 or 1)
+            isBackstab = self:BehindAttack(ent)
+            mul = mul * (isBackstab and 2 or 1)
             mul = mul * self:BlockingLogic(ent, mul, true, trace)
 
             dmg = dmg * mul
@@ -1330,11 +1384,14 @@ function SWEP:CustomThink()
                 goto meleeskip2
             end
 
-            if self.HitEnts[#self.HitEnts] ~= ent then
+            if not self.HitEnts or self.HitEnts[#self.HitEnts] ~= ent then
                 self:PlayEffects(trace, true)
+                if isBackstab then
+                    owner:EmitSound(self.BackstabSound or "trb_backstab.ogg", 65, math.random(125, 145))
+                end
             end
 
-            if self.MultiDmg2 or (self.HitEnts[#self.HitEnts] ~= ent) then
+            if self.MultiDmg2 or not self.HitEnts or (self.HitEnts[#self.HitEnts] ~= ent) then
                 //if self:BreakGlass(ent) then
                     //goto meleeskip2
                 //end
@@ -1373,7 +1430,7 @@ function SWEP:CustomThink()
 
             ::meleeskip2::
 
-            if not ent:IsWorld() and self:IsEntSoft(ent) then
+            if self.HitEnts and not ent:IsWorld() and self:IsEntSoft(ent) then
                 self.HitEnts[#self.HitEnts + 1] = ent
             end
 
@@ -1410,7 +1467,7 @@ SWEP.SwingAng2 = 0
 function SWEP:PrimaryAttack()
     if not game.SinglePlayer() and not IsFirstTimePredicted() then return end
     local ply = self:GetOwner()
-
+    if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(ply) then return end
     if self.cutthroat and self.cutthroat + 1 > CurTime() then return end
     if self.CanSuicide and ply.suiciding then return end
 
@@ -1514,6 +1571,7 @@ end
 
 function SWEP:SecondaryAttack(override)
     local ply = self:GetOwner()
+    if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(ply) then return end
     if ply.organism and ply.organism.larmamputated and self.TwoHanded then return end
 
     if self:CutDuct() then
@@ -1646,6 +1704,7 @@ function SWEP:Initialize()
     util.PrecacheSound(self.AttackHitFlesh)
     util.PrecacheSound(self.Attack2HitFlesh)
     util.PrecacheSound(self.DeploySnd)
+    util.PrecacheSound(self.BackstabSound or "trb_backstab.ogg")
 
     self:InitAdd()
 end
@@ -1806,7 +1865,8 @@ function SWEP:NPCThink()
 			timer.Create(timerId, (self.AttackTime + 0.1) or 0.4, 1, function()
 				if IsValid(self) and IsValid(npc) and npc:Alive() and IsValid(trEnt) then
 					local mul = 1
-					mul = mul * (self:BehindAttack(trEnt) and 2 or 1)
+					local isBackstab = self:BehindAttack(trEnt)
+					mul = mul * (isBackstab and 2 or 1)
 					mul = mul * self:BlockingLogic(trEnt, mul, false, trace)
 					trEnt:PrecacheGibs()
 
@@ -1820,6 +1880,9 @@ function SWEP:NPCThink()
 					dmginfo:SetDamagePosition(trace.HitPos)
 					trEnt:TakeDamageInfo(dmginfo)
 					npc:EmitSound(self.AttackHitFlesh, 60)
+					if isBackstab then
+						npc:EmitSound(self.BackstabSound or "trb_backstab.ogg", 65, math.random(125, 145))
+					end
 
 					if trEnt:IsPlayer() then
 						hg.AddForceRag(trEnt, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)

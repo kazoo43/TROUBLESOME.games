@@ -2141,6 +2141,7 @@ function SWEP:InUse()
 	local ply = self:GetOwner()
 	
 	if !IsValid(ply) then return false end
+	if TS_Stagger and TS_Stagger.IsStaggered and TS_Stagger.IsStaggered(ply) then return false end
 	
 	local ent = IsValid(ply.FakeRagdoll) and ply.FakeRagdoll or ply
 	local org = ply.organism

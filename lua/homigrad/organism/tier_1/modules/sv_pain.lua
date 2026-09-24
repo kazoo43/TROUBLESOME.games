@@ -27,7 +27,7 @@ function hg.organism.paincheck(org)
 	local analgesiaMul = (org.analgesia * 4 + 1)
 	local adrenalineMul = min(max(1 + org.adrenaline, 1), 1.2)
 
-	return (org.shock > org.shock_turn * 4 * analgesiaMul)
+	return (org.shock > org.shock_turn * 7 * analgesiaMul)
 end
 
 module[2] = function(owner, org, timeValue)
@@ -107,7 +107,7 @@ module[2] = function(owner, org, timeValue)
 
 	//org.painkiller = Approach(org.painkiller, 0, timeValue / 240 * (org.naloxone * 25 + 1))
 
-	if hg.organism.paincheck(org) or org.shock >= 100 then
+	if hg.organism.paincheck(org) or org.shock >= 70 then
 		org.needotrub = true
 	end
 	
