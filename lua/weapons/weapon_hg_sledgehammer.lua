@@ -1,7 +1,7 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Sledgehammer"
-SWEP.Instructions = "The Sledgehammer is a two-handed tool which can be used as a melee weapon.\n\nLMB to attack.\nRMB to block."
+SWEP.Instructions = "The Sledgehammer is a two-handed tool which can be used as a melee weapon.\n\nLMB to attack.\nHold LMB to charge, release to attack.\nRMB to block."
 SWEP.Category = "Weapons - Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
@@ -29,6 +29,26 @@ SWEP.Attack2Time = 0.3
 SWEP.AnimTime2 = 1
 SWEP.WaitTime2 = 0.8
 SWEP.ViewPunch2 = Angle(0,0,-2)
+
+SWEP.canchargeattack = true
+SWEP.ChargeAnimTimeBegin = 0.55
+SWEP.ChargeAnimTimeIdle = 0.6
+SWEP.ChargeAnimTimeEnd = 0.95
+SWEP.ChargeFullTime = 0.85
+SWEP.ChargeAttackTime = 0.36
+SWEP.ChargeWaitTime = 1.3
+SWEP.ChargeAttackLen = 70
+SWEP.ChargeAttackTimeLength = 0.26
+SWEP.ChargeAttackRads = 85
+SWEP.ChargeSwingAng = -105
+SWEP.ChargeStamina = 75
+SWEP.ChargePenetration = 8
+SWEP.ChargePenetrationSize = 6.5
+SWEP.ChargeDamageMul = 1.85
+SWEP.ChargeBreakBoneMul = 1.85
+SWEP.ChargeTapCancelTime = 0.55
+SWEP.ChargeViewPunch = Angle(12, 0, 0)
+SWEP.ChargeHoldPos = Vector(-10,-2,1)
 
 SWEP.attack_ang = Angle(0,0,-15)
 SWEP.sprint_ang = Angle(15,0,0)
@@ -88,6 +108,13 @@ function SWEP:CanSecondaryAttack()
 end
 
 function SWEP:CanPrimaryAttack()
+    self.DamageType = DMG_CLUB
+    self.AttackHit = "Concrete.ImpactHard"
+    self.Attack2Hit = "Concrete.ImpactHard"
+    return true
+end
+
+function SWEP:CanChargeAttack()
     self.DamageType = DMG_CLUB
     self.AttackHit = "Concrete.ImpactHard"
     self.Attack2Hit = "Concrete.ImpactHard"

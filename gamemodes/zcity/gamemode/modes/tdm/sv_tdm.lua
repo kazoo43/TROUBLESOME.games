@@ -122,9 +122,9 @@ function MODE:GiveEquipment()
 				ply:Give("weapon_tourniquet")
 			end--]]
 
-			//ply:Give("weapon_melee")
+			//ply:Give("weapon_combatknife")
 
-			ply:Give("weapon_melee")
+			ply:Give("weapon_combatknife")
 			ply:Give("weapon_bandage_sh")
 			ply:Give("weapon_tourniquet")
 			ply.organism.allowholster = true

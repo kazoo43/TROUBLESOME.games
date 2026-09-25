@@ -1,7 +1,7 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Machete"
-SWEP.Instructions = "A machete is a broad blade used either as an agricultural implement similar to an axe, or in combat like a long-bladed knife.\n\nLMB to attack.\nRMB to block."
+SWEP.Instructions = "A machete is a broad blade used either as an agricultural implement similar to an axe, or in combat like a long-bladed knife.\n\nLMB to attack.\nHold LMB to charge, release to attack.\nRMB to block."
 SWEP.Category = "Weapons - Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
@@ -41,6 +41,26 @@ SWEP.Attack2Time = 0.15
 SWEP.AnimTime2 = 0.7
 SWEP.WaitTime2 = 0.8
 SWEP.ViewPunch2 = Angle(1,2,-2)
+
+SWEP.canchargeattack = true
+SWEP.ChargeAnimTimeBegin = 0.35
+SWEP.ChargeAnimTimeIdle = 0.45
+SWEP.ChargeAnimTimeEnd = 0.65
+SWEP.ChargeFullTime = 0.6
+SWEP.ChargeAttackTime = 0.28
+SWEP.ChargeWaitTime = 0.9
+SWEP.ChargeAttackLen = 70
+SWEP.ChargeAttackTimeLength = 0.18
+SWEP.ChargeAttackRads = 85
+SWEP.ChargeSwingAng = -90
+SWEP.ChargeStamina = 50
+SWEP.ChargePenetration = 8
+SWEP.ChargePenetrationSize = 6.5
+SWEP.ChargeDamageMul = 1.25
+SWEP.ChargeBreakBoneMul = 1.15
+SWEP.ChargeTapCancelTime = 0.35
+SWEP.ChargeViewPunch = Angle(12, 0, 0)
+SWEP.ChargeHoldPos = Vector(-12, -1, -6)
 
 SWEP.ViewPunchDiv = -50
 
@@ -122,6 +142,16 @@ function SWEP:CanPrimaryAttack()
     self.AttackHit = "snd_jack_hmcd_knifehit.wav"
     self.Attack2Hit = "snd_jack_hmcd_knifehit.wav"
     self.AttackHitFlesh = "weapons/knife/knife_hit"..math.random(4)..".wav"
+    return true
+end
+
+function SWEP:CanChargeAttack()
+    self.DamageType = DMG_SLASH
+    self.AttackHit = "snd_jack_hmcd_knifehit.wav"
+    self.Attack2Hit = "snd_jack_hmcd_knifehit.wav"
+    self.AttackHitFlesh = "weapons/knife/knife_hit1.wav"
+    self.setlh = false
+    self.HoldType = "melee"
     return true
 end
 

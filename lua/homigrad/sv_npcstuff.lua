@@ -11,7 +11,7 @@ local math_random, math_Rand = math.random, math.Rand
 			"weapon_walkie_talkie"
 		},
 		["npc_combine_s"] = {
-			"weapon_melee",
+			"weapon_combatknife",
 			"weapon_hg_hl2nade_tpik",
 			"weapon_bandage_sh",
 			"weapon_handcuffs"

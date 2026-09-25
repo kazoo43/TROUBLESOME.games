@@ -1,7 +1,7 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Bat"
-SWEP.Instructions = "A bat. The design features of the bat allow it to deliver powerful and heavy blows.\n\nLMB to attack.\nRMB to block."
+SWEP.Instructions = "A bat. The design features of the bat allow it to deliver powerful and heavy blows.\n\nLMB to attack.\nHold LMB to charge, release to attack.\nRMB to block."
 SWEP.Category = "Weapons - Melee"
 SWEP.Spawnable = true
 SWEP.AdminOnly = false
@@ -54,6 +54,26 @@ SWEP.AnimTime2 = 1
 SWEP.WaitTime2 = 0.8
 SWEP.AttackLen2 = 40
 SWEP.ViewPunch2 = Angle(0,0,-2)
+
+SWEP.canchargeattack = true
+SWEP.ChargeAnimTimeBegin = 0.45
+SWEP.ChargeAnimTimeIdle = 0.5
+SWEP.ChargeAnimTimeEnd = 0.8
+SWEP.ChargeFullTime = 0.7
+SWEP.ChargeAttackTime = 0.3
+SWEP.ChargeWaitTime = 0.95
+SWEP.ChargeAttackLen = 70
+SWEP.ChargeAttackTimeLength = 0.22
+SWEP.ChargeAttackRads = 85
+SWEP.ChargeSwingAng = -94
+SWEP.ChargeStamina = 48
+SWEP.ChargePenetration = 8
+SWEP.ChargePenetrationSize = 6.5
+SWEP.ChargeDamageMul = 1.85
+SWEP.ChargeBreakBoneMul = 1.15
+SWEP.ChargeTapCancelTime = 0.45
+SWEP.ChargeViewPunch = Angle(7, 0, 0)
+SWEP.ChargeHoldPos = Vector(-8, 0, 0)
 
 SWEP.attack_ang = Angle(0,0,0)
 SWEP.sprint_ang = Angle(15,0,0)

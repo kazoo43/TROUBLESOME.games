@@ -130,7 +130,7 @@ local loadouts = {
 
 local randomGrenades = {"weapon_hg_rgd_tpik", "weapon_hg_pipebomb_tpik", "weapon_hg_smokenade_tpik", "weapon_hg_flashbang_tpik"}
 local randomMedicine = {"weapon_bandage_sh", "weapon_bigbandage_sh", "weapon_medkit_sh", "weapon_fentanyl", "weapon_morphine", "weapon_adrenaline", "weapon_tourniquet"}
-local randomMelees = {"weapon_melee", "weapon_pocketknife"}
+local randomMelees = {"weapon_combatknife", "weapon_pocketknife"}
 
 local function MakeDissolver(ent, position, dissolveType)
     local Dissolver = ents.Create("env_entity_dissolver")

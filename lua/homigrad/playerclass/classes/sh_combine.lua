@@ -89,7 +89,7 @@ local combine_subclasses = {
 			["models/combine_soldier/combinesoldiersheet_player"] = "models/combine_soldier/combinesoldiersheet"
 		},
         loadout = {
-            {weapon = "weapon_melee"}, --;; ближний бой мясо кишки
+            {weapon = "weapon_combatknife"}, --;; ближний бой мясо кишки
             {
                 weapon = "weapon_hg_hl2nade_tpik",
                 count = 1
@@ -114,7 +114,7 @@ local combine_subclasses = {
 			["models/combine_soldier/combine_elite_player_head"] = "models/combine_soldier/combine_elite"
 		},
         loadout = {
-            {weapon = "weapon_melee"},
+            {weapon = "weapon_combatknife"},
             {
                 weapon = "weapon_hg_hl2nade_tpik",
                 count = 1
@@ -135,7 +135,7 @@ local combine_subclasses = {
         color = Color(0,220,220),
         models = Model("models/player/combine_soldier.mdl"),
         loadout = {
-            {weapon = "weapon_melee"},
+            {weapon = "weapon_combatknife"},
             {
                 weapon = "weapon_hg_hl2nade_tpik",
                 count = 1
@@ -159,7 +159,7 @@ local combine_subclasses = {
 			["models/combine_soldier/combinesoldiersheet_player_shotgun"] = "models/combine_soldier/combinesoldiersheet_shotgun"
 		},
         loadout = {
-            {weapon = "weapon_melee"},
+            {weapon = "weapon_combatknife"},
             {
                 weapon = "weapon_hg_flashbang_tpik",
                 count = 1

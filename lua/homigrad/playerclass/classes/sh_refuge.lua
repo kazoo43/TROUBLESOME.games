@@ -202,7 +202,7 @@ function CLASS.GiveEquipment(self, class)
 
     ply:SyncArmor()
 
-    ply:Give("weapon_melee")
+    ply:Give("weapon_combatknife")
     ply:Give("weapon_walkie_talkie")
     
     if class == "medic" then

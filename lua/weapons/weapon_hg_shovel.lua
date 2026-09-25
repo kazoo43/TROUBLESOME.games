@@ -1,4 +1,4 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Shovel"
 SWEP.Instructions = "A shovel may be big and slow but it can pack a punch.\n\nLMB to attack.\nRMB to block."
@@ -62,6 +62,27 @@ SWEP.AnimList = {
     ["attack"] = "Attack_Quick",
     ["attack2"] = "Shove",
 }
+
+--[[ charge disabled, this model has no charge sequences, ported from remorseism weapon_hg_shovel
+SWEP.canchargeattack = true
+SWEP.ChargeAnimTimeBegin = 0.6
+SWEP.ChargeAnimTimeIdle = 0.6
+SWEP.ChargeAnimTimeEnd = 1
+SWEP.ChargeFullTime = 0.9
+SWEP.ChargeAttackTime = 0.38
+SWEP.ChargeWaitTime = 1.2
+SWEP.ChargeAttackLen = 65
+SWEP.ChargeAttackTimeLength = 0.34
+SWEP.ChargeAttackRads = 85
+SWEP.ChargeSwingAng = -84
+SWEP.ChargeStamina = 44
+SWEP.ChargePenetration = 8
+SWEP.ChargePenetrationSize = 6.5
+SWEP.ChargeDamageMul = 1.85
+SWEP.ChargeBreakBoneMul = 1.85
+SWEP.ChargeTapCancelTime = 0.6
+SWEP.ChargeViewPunch = Angle(12, 0, 0)
+]]
 
 if CLIENT then
 	SWEP.WepSelectIcon = Material("vgui/icons/ico_shovel.png")

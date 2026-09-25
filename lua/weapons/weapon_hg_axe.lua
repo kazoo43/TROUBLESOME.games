@@ -1,4 +1,4 @@
-﻿if SERVER then AddCSLuaFile() end
+if SERVER then AddCSLuaFile() end
 SWEP.Base = "weapon_melee"
 SWEP.PrintName = "Woodcutting axe"
 SWEP.Instructions = "An axe is an implement that has been used for millennia to shape, split, and cut wood. Can break down doors.\n\nLMB to attack.\nRMB to block."
@@ -53,7 +53,36 @@ SWEP.AnimList = {
     ["deploy"] = "Draw",
     ["attack"] = "Attack_Quick",
     ["attack2"] = "Shove",
+    --[[ charge disabled, this model has no charge sequences, ported from remorseism weapon_hg_axe
+    ["charge_begin"] = "Attack_Charge_Begin",
+    ["charge_idle"] = "Attack_Charge_Idle",
+    ["charge_end"] = "Attack_Charge_End",
+    ]]
 }
+
+--[[ charge disabled, this model has no charge sequences, ported from remorseism weapon_hg_axe
+SWEP.canchargeattack = true
+SWEP.ChargeAnimTimeBegin = 0.55
+SWEP.ChargeAnimTimeIdle = 0.6
+SWEP.ChargeAnimTimeEnd = 0.95
+SWEP.ChargeFullTime = 0.85
+SWEP.ChargeAttackTime = 0.36
+SWEP.ChargeWaitTime = 1.3
+SWEP.ChargeAttackLen = 70
+SWEP.ChargeAttackTimeLength = 0.24
+SWEP.ChargeAttackRads = 85
+SWEP.ChargeSwingAng = -78
+SWEP.ChargeStamina = 48
+SWEP.ChargePenetration = 8
+SWEP.ChargePenetrationSize = 6.5
+SWEP.ChargeDamageMul = 2.05
+SWEP.ChargeBreakBoneMul = 2.1
+SWEP.ChargeTapCancelTime = 0.55
+SWEP.ChargeViewPunch = Angle(12, 0, 0)
+SWEP.ChargeHoldPos = Vector(-7, -5, -1)
+SWEP.ChargeAttackHit = "Canister.ImpactHard"
+SWEP.ChargeAttackHitFlesh = "snd_jack_hmcd_axehit.wav"
+]]
 
 SWEP.DamageType = DMG_SLASH
 SWEP.DamagePrimary = 42
@@ -111,6 +140,15 @@ function SWEP:CanPrimaryAttack()
     self.Attack2Hit = "Canister.ImpactHard"
     return true
 end
+
+--[[ function SWEP:CanChargeAttack()
+    self.DamageType = DMG_SLASH
+    self.AttackHit = "Canister.ImpactHard"
+    self.Attack2Hit = "Canister.ImpactHard"
+    self.ChargeAttackHit = "Canister.ImpactHard"
+    self.ChargeAttackHitFlesh = "snd_jack_hmcd_axehit.wav"
+    return true
+end ]]
 
 function SWEP:CanSecondaryAttack()
     --[[self.DamageType = DMG_CLUB

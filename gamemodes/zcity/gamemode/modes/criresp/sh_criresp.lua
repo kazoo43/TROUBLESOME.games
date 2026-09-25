@@ -45,7 +45,7 @@ MODE.SWATGear = {
 	{name = "Medkit", item = "weapon_medkit_sh"},
 	{name = "Tourniquet", item = "weapon_tourniquet"},
 	{name = "Walkie Talkie", item = "weapon_walkie_talkie"},
-	{name = "Knife", item = "weapon_melee"},
+	{name = "Knife", item = "weapon_combatknife"},
 	{name = "Flashbang", item = "weapon_hg_flashbang_tpik"},
 	{name = "Bloodbag", item = "weapon_bloodbag"},
 	{name = "Ballistic Shield", item = "weapon_ballistic_shield"},

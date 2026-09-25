@@ -170,23 +170,6 @@ hook.Add("Post Processing", "Main", function()
 	DrawSunEffect()
 end)
 
-local color_red = Color( 56, 43, 0, 255)
-local haloents = {
-	["attachment_base"] = true,
-	["ammo_base"] = true,
-	["armor_base"] = true,
-	["hg_flashlight"] = true,
-	["homigrad_base"] = true,
-	["weapon_melee"] = true,
-	["weapon_bandage_sh"] = true,
-	["hg_sling"] = true,
-	["hg_brassknuckles"] = true,
-	["weapon_m4super"] = true,
-	["weapon_revolver2"] = true,
-	["weapon_hg_f1_tpik"] = true
-}
--- funny :)
-
 --that one furry game
 
 
