@@ -200,6 +200,145 @@ local lobotomy_mats = {
 	[8] = Material("overlays/tallflash3.png")
 }
 
+local health_vignettes = {
+	Material("overlays/health_vignette_1.png", "smooth"),
+	Material("overlays/health_vignette_2.png", "smooth"),
+	Material("overlays/health_vignette_3.png", "smooth"),
+	Material("overlays/health_vignette_4.png", "smooth"),
+	Material("overlays/health_vignette_near_death.png", "smooth")
+}
+
+local health_vignette_stages = {70, 45, 25, 12, 3}
+
+local vignette_stage = 0
+local vignette_prev = 0
+local vignette_lerp = 0
+local vignette_prevlerp = 0
+
+local damage_mats = {
+	Material("overlays/takedamage/1.png", "smooth"),
+	Material("overlays/takedamage/2.png", "smooth"),
+	Material("overlays/takedamage/3.png", "smooth")
+}
+
+local damage_mat_count = #damage_mats
+local damage_hold = 0.18
+local damage_fade = 0.85
+local damage_len = damage_hold + damage_fade
+local damage_mat, damage_time, damage_amt, damage_shake_time
+local last_health = 100
+
+hook.Add("Post Post Pre Post Processing", "HealthVignettes", function()
+	local org = lply.organism
+	if isbool(org) then org = nil end
+
+	if !lply:Alive() then
+		last_health = 100
+		damage_mat, damage_time, damage_amt = nil, nil, nil
+		vignette_stage, vignette_prev, vignette_lerp, vignette_prevlerp = 0, 0, 0, 0
+		return
+	end
+
+	local w, h = ScrW(), ScrH()
+	local time = CurTime()
+	local health = lply:Health()
+	local otrub = org and org.otrub
+
+	if otrub then
+		last_health = health
+		damage_mat, damage_time, damage_amt = nil, nil, nil
+	else
+		local dealt = last_health - health
+		last_health = health
+
+		if dealt > 5 and damage_mat_count > 0 then
+			local mat = damage_mats[math.random(1, damage_mat_count)]
+
+			if type(mat) == "IMaterial" then
+				local amt = math.Clamp(dealt / 40, 0.25, 1)
+				if damage_mat then
+					local p = (time - damage_time) / damage_len
+					if p < 1 then amt = math.max(amt, damage_amt * (1 - p) * (1 - p)) end
+				end
+
+				damage_mat = mat
+				damage_time = time
+				damage_amt = amt
+
+				if time - (damage_shake_time or 0) > damage_len * 0.5 then
+					damage_shake_time = time
+					util.ScreenShake(lply:GetPos(), 7 + amt * 14, 55 + amt * 44, damage_len, 256, true)
+				end
+			end
+		end
+	end
+
+	local stage = 0
+
+	if otrub then
+		stage = #health_vignette_stages
+	else
+		for i = 1, #health_vignette_stages do
+			if health <= health_vignette_stages[i] then
+				stage = i
+				break
+			end
+		end
+	end
+
+	if stage != vignette_stage then
+		if vignette_lerp > 8 then
+			vignette_prev, vignette_prevlerp = vignette_stage, vignette_lerp
+		else
+			vignette_prev, vignette_prevlerp = 0, 0
+		end
+
+		vignette_stage, vignette_lerp = stage, 0
+	end
+
+	vignette_lerp = LerpFT(0.04, vignette_lerp, vignette_stage > 0 and 255 or 0)
+	vignette_prevlerp = LerpFT(0.05, vignette_prevlerp, 0)
+
+	if vignette_prev > 0 and vignette_prevlerp < 0.5 then vignette_prev = 0 end
+
+	if vignette_prev > 0 and vignette_prevlerp > 0.5 then
+		local s = 1.14 - 0.14 * vignette_prevlerp / 255
+		surface.SetDrawColor(255, 255, 255, vignette_prevlerp)
+		surface.SetMaterial(health_vignettes[vignette_prev])
+		surface.DrawTexturedRect(-w * (s - 1) * 0.5, -h * (s - 1) * 0.5, w * s, h * s)
+	end
+
+	if vignette_stage > 0 and vignette_lerp > 0.5 then
+		local s = 1 + 0.14 * (1 - vignette_lerp / 255)
+		surface.SetDrawColor(255, 255, 255, vignette_lerp)
+		surface.SetMaterial(health_vignettes[vignette_stage])
+		surface.DrawTexturedRect(-w * (s - 1) * 0.5, -h * (s - 1) * 0.5, w * s, h * s)
+	end
+
+	if damage_mat then
+		local p = (time - damage_time) / damage_len
+
+		if p >= 1 then
+			damage_mat, damage_time, damage_amt = nil, nil, nil
+		else
+			local fade = 1 - math.Clamp((time - damage_time - damage_hold) / damage_fade, 0, 1)
+			fade = fade * fade
+
+			local zoom = math.Clamp(p / 0.35, 0, 1)
+			zoom = 1 - (1 - zoom) * (1 - zoom) * (1 - zoom)
+
+			local shake = damage_amt * fade * 0.03
+			local dw, dh = w * (0.86 + 0.14 * zoom), h * (0.96 + 0.04 * zoom * zoom)
+			local dx = (w - dw) * 0.5 + w * shake * math.Rand(-1, 1) * 0.5
+			local dy = (h - dh) * 0.5 + h * shake * math.Rand(-1, 1) * 0.5
+
+			surface.SetDrawColor(255, 255, 255, damage_amt * fade * 255)
+			surface.SetMaterial(damage_mat)
+			surface.DrawTexturedRect(dx, dy, dw, dh)
+		end
+	end
+end)
+
 local function stopthings()
 	PainLerp = 0
 	O2Lerp = 0
@@ -207,6 +346,9 @@ local function stopthings()
 	assimilatedLerp = 0
 	tempLerp = 36.6
 	consciousnessLerp = 1
+	vignette_stage, vignette_prev, vignette_lerp, vignette_prevlerp = 0, 0, 0, 0
+	damage_mat, damage_time, damage_amt = nil, nil, nil
+	last_health = 100
 
 	lply.tinnitus = 0
 	
