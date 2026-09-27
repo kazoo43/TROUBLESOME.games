@@ -78,23 +78,23 @@ function SWEP:GetAttackSpeedMul()
     return self.MeleeSpeedMul or 1
 end
 
-function SWEP:GetChargeDamageScale()
-    return Lerp(self:GetChargeFraction(), 1, self.ChargeDamageMul or 1)
+function SWEP:GetChargeDamage()
+    local primary = self.DamagePrimary or 0
+
+    if self.ChargeDamage then return Lerp(self:GetChargeFraction(), primary, self.ChargeDamage) end
+
+    return Lerp(self:GetChargeFraction(), primary, primary * (self.ChargeDamageMul or 1.5))
 end
 
 function SWEP:GetChargeWindUpTime()
     return math.min(self.ChargeAnimTimeBegin or 0.2, self.ChargeTapCancelTime or 0.12)
 end
 
-function SWEP:GetChargeBoneScale()
-    return Lerp(self:GetChargeFraction(), 1, self.ChargeBreakBoneMul or 1)
-end
-
 function SWEP:GetAttackDamageBase(attacktype)
     local damage = self:GetAttackConfigValue(self.DamagePrimary, self.DamageSecondary, self.DamagePrimary, attacktype) or 0
 
     if self:IsChargeAttackType(attacktype) then
-        damage = damage * (self.ReleasedChargeDamageMul or 1)
+        return self.ReleasedChargeDamage or damage
     end
 
     return damage
@@ -160,9 +160,9 @@ SWEP.ChargeSwingAng = -90
 SWEP.ChargeStamina = 10
 SWEP.ChargePenetration = 8
 SWEP.ChargePenetrationSize = 0.75
-SWEP.ChargeDamageMul = 1.5
-SWEP.ChargeBreakBoneMul = 1.25
+SWEP.ChargeDamage = 22
 SWEP.ChargeTapCancelTime = 0.3
+SWEP.MissWaitTimeMul = 1
 SWEP.ChargeMaxTime = 3
 SWEP.ChargeViewPunch = nil
 SWEP.ChargeHoldPos = nil
@@ -839,13 +839,12 @@ function SWEP:ClearChargeState()
     self.ChargeIdleLooping = nil
     self.ChargeStartedAt = nil
     self.ChargeReleasedAt = nil
-    self.ReleasedChargeDamageMul = nil
-    self.ReleasedChargeBoneMul = nil
+    self.ReleasedChargeDamage = nil
     self.ChargeSpeedMul = nil
 end
 
 function SWEP:CancelChargeAttack(playIdle)
-    if not self.Charging and self.ReleasedChargeDamageMul == nil and self.ReleasedChargeBoneMul == nil then return end
+    if not self.Charging and self.ReleasedChargeDamage == nil then return end
 
     self:ClearChargeState()
 
@@ -868,13 +867,23 @@ function SWEP:StartChargeAttack()
     self.ChargeIdleLooping = false
     self.ChargeStartedAt = CurTime()
     self.ChargeReleasedAt = nil
-    self.ReleasedChargeDamageMul = nil
-    self.ReleasedChargeBoneMul = nil
+    self.ReleasedChargeDamage = nil
     self.ChargeSpeedMul = self:GetAttackSpeedMul()
 
     self:PlayAnim(self:GetAttackAnimToken("charge_begin", "Attack_Charge_Begin"), self:GetChargeWindUpTime(), false, nil, false, false)
 
     return true
+end
+
+function SWEP:ApplyMissWait()
+    if self.attackedOnce then return end
+
+    local mul = self.MissWaitTimeMul or 1
+
+    if mul <= 1 then return end
+
+    self:SetAttackWait(self:GetAttackWait() * mul)
+    self.attackwait = (self.attackwait or 0) * mul
 end
 
 function SWEP:QuickAttack()
@@ -896,8 +905,7 @@ function SWEP:ReleaseChargeAttack()
     local mul = self.ChargeSpeedMul or self:GetAttackSpeedMul()
 
     self.ChargeReleasedAt = CurTime()
-    self.ReleasedChargeDamageMul = self:GetChargeDamageScale()
-    self.ReleasedChargeBoneMul = self:GetChargeBoneScale()
+    self.ReleasedChargeDamage = self:GetChargeDamage()
     self.Charging = nil
     self.ChargeIdleLooping = nil
     self.HitEnts = nil
@@ -1479,6 +1487,8 @@ function SWEP:CustomThink()
             end
 
 			if CLIENT and IsFirstTimePredicted() and self.weight > 0.4 and (!self.stopanim or (!soft and !self.HitWorld)) and !hg_nomeleestop:GetBool() then
+                local animToken = self.animToken
+
 				if !soft or self.AnimAlwaysBack or self.HitWorld then   
                     local mul = 5
                     self.animspeed = self.animspeed * mul
@@ -1487,6 +1497,7 @@ function SWEP:CustomThink()
                     
                     timer.Simple(0.4, function()
                         if !IsValid(self) then return end
+                        if self.animToken ~= animToken then return end
 
                         local timing = (1 - math.Clamp((self.animtime - CurTime()) / self.animspeed, 0, 1))
                         local mul = 0.25
@@ -1509,6 +1520,7 @@ function SWEP:CustomThink()
                     
                     timer.Simple(0.1, function()
                         if !IsValid(self) then return end
+                        if self.animToken ~= animToken then return end
 
                         local timing = (1 - math.Clamp((self.animtime - CurTime()) / self.animspeed, 0, 1))
                         local mul = 0.3
@@ -1524,7 +1536,13 @@ function SWEP:CustomThink()
 				end
 			end
 
-            if CLIENT then goto meleeskip1 end
+            if CLIENT then
+                if soft and (not self.HitEnts or self.HitEnts[#self.HitEnts] ~= ent) then
+                    self.attackedOnce = true
+                end
+
+                goto meleeskip1
+            end
 
             ent:PrecacheGibs()
 
@@ -1592,6 +1610,7 @@ function SWEP:CustomThink()
             self.FirstAttackTick = true
 
             if inattackL1 == 0 then
+                self:ApplyMissWait()
                 self:SetInAttack(false)
                 self.HitEnts = nil
                 self.FirstAttackTick = false
@@ -1621,7 +1640,13 @@ function SWEP:CustomThink()
                 self:AddDecal()
             end
 
-            if CLIENT then goto meleeskip2 end
+            if CLIENT then
+                if self:IsEntSoft(ent) and (not self.HitEnts or self.HitEnts[#self.HitEnts] ~= ent) then
+                    self.attackedOnce = true
+                end
+
+                goto meleeskip2
+            end
 
             ent:PrecacheGibs()
 
@@ -1695,6 +1720,7 @@ function SWEP:CustomThink()
             self.FirstAttackTick = true
 
             if inattackL2 == 0 then
+                self:ApplyMissWait()
                 self:SetInAttack(false)
                 self.HitEnts = nil
                 self.FirstAttackTick = false
@@ -1720,8 +1746,8 @@ function SWEP:CustomThink()
 
             local shouldhit = (IsValid(ent) or ent:IsWorld())
 
-            local damageBase = self.DamagePrimary or 0
-            local dmg = math.random(damageBase - 3, damageBase + 3) * (self.ReleasedChargeDamageMul or 1)
+            local damageBase = self.ReleasedChargeDamage or self.DamagePrimary or 0
+            local dmg = math.random(damageBase - 3, damageBase + 3)
 
             local isBackstab = false
             if !shouldhit then
@@ -1732,7 +1758,13 @@ function SWEP:CustomThink()
                 self:AddDecal()
             end
 
-            if CLIENT then goto meleeskip3 end
+            if CLIENT then
+                if self:IsEntSoft(ent) and (not self.HitEnts or self.HitEnts[#self.HitEnts] ~= ent) then
+                    self.attackedOnce = true
+                end
+
+                goto meleeskip3
+            end
 
             ent:PrecacheGibs()
 
@@ -1769,13 +1801,10 @@ function SWEP:CustomThink()
                 dmginfo:SetDamageType(ent:GetClass() == "func_breakable_surf" and DMG_SLASH or self.DamageType)
                 dmginfo:SetDamagePosition(trace.HitPos)
 
-                local oldBreakBoneMul = self.BreakBoneMul
-                self.BreakBoneMul = (self.BreakBoneMul or 1) * (self.ReleasedChargeBoneMul or 1)
                 self.slash = self.MultiDmgCharge
                 ent:TakeDamageInfo(dmginfo)
                 self.attackedOnce = true
                 self.slash = nil
-                self.BreakBoneMul = oldBreakBoneMul
 
                 local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone or 0)
 
@@ -1799,13 +1828,13 @@ function SWEP:CustomThink()
             self.FirstAttackTick = true
 
             if inattackL3 == 0 then
+                self:ApplyMissWait()
                 self:SetInAttack(false)
                 self.HitEnts = nil
                 self.FirstAttackTick = false
                 self.AttackHitPlayed = false
                 self.ChargeReleasedAt = nil
-                self.ReleasedChargeDamageMul = nil
-                self.ReleasedChargeBoneMul = nil
+                self.ReleasedChargeDamage = nil
                 self.ChargeSpeedMul = nil
             end
         end
@@ -2110,6 +2139,9 @@ function SWEP:PlayAnim(anim, time, cycling, callback, reverse, sendtoclient)
     end
 
     wm:SetSequence(sequence)
+
+    self.animToken = (self.animToken or 0) + 1
+    self.stopanim = nil
 
     self.animtime = CurTime() + time
     self.animspeed = time

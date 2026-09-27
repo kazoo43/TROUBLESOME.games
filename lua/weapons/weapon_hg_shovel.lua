@@ -78,8 +78,7 @@ SWEP.ChargeSwingAng = -84
 SWEP.ChargeStamina = 44
 SWEP.ChargePenetration = 8
 SWEP.ChargePenetrationSize = 6.5
-SWEP.ChargeDamageMul = 1.85
-SWEP.ChargeBreakBoneMul = 1.85
+SWEP.ChargeDamage = 32
 SWEP.ChargeTapCancelTime = 0.6
 SWEP.ChargeViewPunch = Angle(12, 0, 0)
 ]]

@@ -69,11 +69,11 @@ SWEP.ChargeSwingAng = -94
 SWEP.ChargeStamina = 48
 SWEP.ChargePenetration = 8
 SWEP.ChargePenetrationSize = 6.5
-SWEP.ChargeDamageMul = 1.85
-SWEP.ChargeBreakBoneMul = 1.15
+SWEP.ChargeDamage = 45
 SWEP.ChargeTapCancelTime = 0.45
 SWEP.ChargeViewPunch = Angle(7, 0, 0)
 SWEP.ChargeHoldPos = Vector(-8, 0, 0)
+SWEP.MissWaitTimeMul = 1.5
 
 SWEP.attack_ang = Angle(0,0,0)
 SWEP.sprint_ang = Angle(15,0,0)
