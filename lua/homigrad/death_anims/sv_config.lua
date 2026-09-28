@@ -124,10 +124,15 @@ function TS_DeathAnim.Select(hit, kind, flags)
     if pct > 100 then pct = 100 end
     if cat == "club" then pct = pct * (TS_DeathAnim.ClubEndMul or 0.5) end
     if pct < 1 then pct = 1 end
+    local headClub = kind == "club" and hit == HITGROUP_HEAD
     local rate = 1
-    if cat == "bd_head" then rate = TS_DeathAnim.HeadRate or 1 end
-    if dbg then print("[TS-DeathAnim] pick=" .. pick .. " cat=" .. cat .. " kind=" .. kind .. " hit=" .. hit .. " frac=" .. (pct / 100) .. " rate=" .. rate) end
-    return pick, pct / 100, rate
+    if headClub then
+        rate = (TS_DeathAnim.HeadClub and TS_DeathAnim.HeadClub.Rate) or 0.95
+    elseif cat == "bd_head" then
+        rate = TS_DeathAnim.HeadRate or 1
+    end
+    if dbg then print("[TS-DeathAnim] pick=" .. pick .. " cat=" .. cat .. " kind=" .. kind .. " hit=" .. hit .. " frac=" .. (pct / 100) .. " rate=" .. rate .. " gore=" .. tostring(headClub)) end
+    return pick, pct / 100, rate, headClub
 end
 function TS_DeathAnim.HasGround(rag)
     if not IsValid(rag) then return false end

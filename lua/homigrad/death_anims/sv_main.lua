@@ -7,7 +7,12 @@ local function RecordInfo(ply, hit, dmgInfo)
     if not ply:Alive() then return end
     local kind, raw = TS_DeathAnim.ClassifyType(dmgInfo, ply)
     local faceYaw = nil
+    local hitPos = nil
     if dmgInfo then
+        if dmgInfo.GetDamagePosition then
+            local p = dmgInfo:GetDamagePosition()
+            if p and p:LengthSqr() > 1 then hitPos = Vector(p) end
+        end
         if dmgInfo.GetAttacker then
             local attacker = dmgInfo:GetAttacker()
             if IsValid(attacker) and attacker ~= ply then
@@ -24,6 +29,7 @@ local function RecordInfo(ply, hit, dmgInfo)
         hit = hit or HITGROUP_GENERIC,
         kind = kind,
         raw = raw,
+        hitPos = hitPos,
         flags = TS_DeathAnim.GetHitFlags(ply, hit, dmgInfo),
         faceYaw = faceYaw,
         time = CurTime(),
@@ -84,14 +90,20 @@ function TS_DeathAnim.TryAnimate(ply)
     if IsValid(pelvisPhys) and pelvisPhys:GetVelocity():Length() > 600 then if dbg then print("[TS-DeathAnim] skip fast") end return end
     if IsValid(rag.TS_DeathAnim) then return end
     if not TS_DeathAnim.HasGround(rag) then if dbg then print("[TS-DeathAnim] skip noground") end return end
-    local seq, frac, rate = TS_DeathAnim.Select(info.hit, info.kind, info.flags)
+    local seq, frac, rate, headClub = TS_DeathAnim.Select(info.hit, info.kind, info.flags)
     if not seq then if dbg then print("[TS-DeathAnim] skip noseq") end return end
     local yaw = nil
     if info.faceYaw then
         yaw = info.faceYaw
         if info.flags and info.flags.back then yaw = yaw + 180 end
     end
-    TS_DeathAnim.Animate(rag, seq, frac, rate, yaw)
+    local anim = TS_DeathAnim.Animate(rag, seq, frac, rate, yaw)
+    if headClub and IsValid(anim) and TS_DeathAnim.HeadGore then
+        if math.random() < ((TS_DeathAnim.HeadClub and TS_DeathAnim.HeadClub.FaceHoldChance) or 0) then
+            anim:SetFaceHold(true)
+        end
+        TS_DeathAnim.HeadGore(rag, info.hitPos)
+    end
 end
 hook.Add("HomigradDamage", "TS_DeathAnim_Track", function(ply, dmgInfo, hitgroup)
     RecordInfo(ply, hitgroup, dmgInfo)

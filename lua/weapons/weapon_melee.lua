@@ -100,6 +100,17 @@ function SWEP:GetAttackDamageBase(attacktype)
     return damage
 end
 
+function SWEP:GetKnockbackDamage(dmg)
+    local knee = self.KnockbackKnee or 10
+    local cap = self.KnockbackCap or 25
+
+    if dmg <= knee then return math.max(dmg, 0) end
+
+    local span = math.max(cap - knee, 0.001)
+
+    return knee + span * (1 - math.exp(-(dmg - knee) / span))
+end
+
 function SWEP:GetAttackHitSound(attacktype)
     return self:GetAttackConfigValue(self.AttackHit, self.Attack2Hit, self.ChargeAttackHit, attacktype)
 end
@@ -129,6 +140,9 @@ SWEP.AttackLen2 = 45
 SWEP.DamageType = DMG_SLASH
 SWEP.DamagePrimary = 15
 SWEP.DamageSecondary = 8
+
+SWEP.KnockbackKnee = 10
+SWEP.KnockbackCap = 25
 
 SWEP.PenetrationPrimary = 8
 SWEP.PenetrationSecondary = 4
@@ -1217,9 +1231,11 @@ function SWEP:PunchPlayer(ent, attacktype, trnormal, dmg)
             
             local angrand = AngleRand(-5, 5)
 
-            ply:ViewPunch((normal * -dot) * dmg / 30)
+            local kbd = self:GetKnockbackDamage(dmg)
+
+            ply:ViewPunch((normal * -dot) * kbd / 30)
 			if ply:OnGround() or ply.organism.superfighter then
-           		ply:SetVelocity((trnormal:Angle() + normal):Forward() * -5 * dmg + trnormal * dmg * 10)
+           		ply:SetVelocity((trnormal:Angle() + normal):Forward() * -5 * kbd + trnormal * kbd * 10)
 			end
         end
     end
@@ -1579,7 +1595,7 @@ function SWEP:CustomThink()
                 dmginfo:SetAttacker(owner)
                 dmginfo:SetInflictor(self)
                 dmginfo:SetDamage(dmg)
-                dmginfo:SetDamageForce(trace.Normal * dmg)
+                dmginfo:SetDamageForce(trace.Normal * self:GetKnockbackDamage(dmg))
                 dmginfo:SetDamageType(ent:GetClass() == "func_breakable_surf" and DMG_SLASH or self.DamageType)
                 dmginfo:SetDamagePosition(trace.HitPos)
                 
@@ -1588,14 +1604,14 @@ function SWEP:CustomThink()
                 self.attackedOnce = true
                 self.slash = nil
                 
-                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
+                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * self:GetKnockbackDamage(dmg) * 400, 0.5)
 
                 self:PunchPlayer(ent, false, trace.Normal, dmg)
 
                 local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone or 0)
 
                 if IsValid(phys) then
-                    phys:ApplyForceOffset(trace.Normal * math.min(dmg, 25) * 400, trace.HitPos)
+                    phys:ApplyForceOffset(trace.Normal * self:GetKnockbackDamage(dmg) * 400, trace.HitPos)
                 end
 
                 self:PrimaryAttackAdd(ent, trace)
@@ -1688,7 +1704,7 @@ function SWEP:CustomThink()
                 dmginfo:SetAttacker(owner)
                 dmginfo:SetInflictor(self)
                 dmginfo:SetDamage(dmg)
-                dmginfo:SetDamageForce(trace.Normal * dmg)
+                dmginfo:SetDamageForce(trace.Normal * self:GetKnockbackDamage(dmg))
                 dmginfo:SetDamageType(ent:GetClass() == "func_breakable_surf" and DMG_SLASH or self.DamageType)
                 dmginfo:SetDamagePosition(trace.HitPos)
 
@@ -1700,12 +1716,12 @@ function SWEP:CustomThink()
 
                 local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone or 0)
 
-                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
+                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * self:GetKnockbackDamage(dmg) * 400, 0.5)
 
                 self:PunchPlayer(ent, true, trace.Normal, dmg)
 
                 if IsValid(phys) then
-                    phys:ApplyForceOffset(trace.Normal * math.min(dmg, 25) * 400, trace.HitPos)
+                    phys:ApplyForceOffset(trace.Normal * self:GetKnockbackDamage(dmg) * 400, trace.HitPos)
                 end
 
                 self:SecondaryAttackAdd(ent, trace)
@@ -1797,7 +1813,7 @@ function SWEP:CustomThink()
                 dmginfo:SetAttacker(owner)
                 dmginfo:SetInflictor(self)
                 dmginfo:SetDamage(dmg)
-                dmginfo:SetDamageForce(trace.Normal * dmg)
+                dmginfo:SetDamageForce(trace.Normal * self:GetKnockbackDamage(dmg))
                 dmginfo:SetDamageType(ent:GetClass() == "func_breakable_surf" and DMG_SLASH or self.DamageType)
                 dmginfo:SetDamagePosition(trace.HitPos)
 
@@ -1808,12 +1824,12 @@ function SWEP:CustomThink()
 
                 local phys = ent:GetPhysicsObjectNum(trace.PhysicsBone or 0)
 
-                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
+                hg.AddForceRag(ent, trace.PhysicsBone or 0, trace.Normal * self:GetKnockbackDamage(dmg) * 400, 0.5)
 
                 self:PunchPlayer(ent, 3, trace.Normal, dmg)
 
                 if IsValid(phys) then
-                    phys:ApplyForceOffset(trace.Normal * math.min(dmg, 25) * 400, trace.HitPos)
+                    phys:ApplyForceOffset(trace.Normal * self:GetKnockbackDamage(dmg) * 400, trace.HitPos)
                 end
 
                 self:ChargeAttackAdd(ent, trace)
@@ -2251,7 +2267,7 @@ function SWEP:NPCThink()
 					dmginfo:SetAttacker(npc)
 					dmginfo:SetInflictor(self)
 					dmginfo:SetDamage(dmg)
-					dmginfo:SetDamageForce(trace.Normal * dmg * 1)
+					dmginfo:SetDamageForce(trace.Normal * self:GetKnockbackDamage(dmg) * 1)
 					dmginfo:SetDamageType(self.DamageType)
 					dmginfo:SetDamagePosition(trace.HitPos)
 					trEnt:TakeDamageInfo(dmginfo)
@@ -2261,14 +2277,14 @@ function SWEP:NPCThink()
 					end
 
 					if trEnt:IsPlayer() then
-						hg.AddForceRag(trEnt, trace.PhysicsBone or 0, trace.Normal * math.min(dmg, 25) * 400, 0.5)
+						hg.AddForceRag(trEnt, trace.PhysicsBone or 0, trace.Normal * self:GetKnockbackDamage(dmg) * 400, 0.5)
 
 						self:PunchPlayer(trEnt, false, trace.Normal, dmg)
 		
 						local phys = trEnt:GetPhysicsObjectNum(trace.PhysicsBone or 0)
 		
 						if IsValid(phys) then
-							phys:ApplyForceOffset(trace.Normal * math.min(dmg, 25) * 400, trace.HitPos)
+							phys:ApplyForceOffset(trace.Normal * self:GetKnockbackDamage(dmg) * 400, trace.HitPos)
 						end
 					end
 				end

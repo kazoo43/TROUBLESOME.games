@@ -21,6 +21,18 @@ local function Dbg(msg)
 end
 local FALL_DROP = 24
 local FALL_GRACE = 0.15
+local FACEHOLD_DELAY = 0.09
+local FACEHOLD_UPPER = 25
+local FACEHOLD_HAND = 100
+local FACEHOLD_DAMP = 10
+local FACEHOLD_BONES = {
+    ["ValveBiped.Bip01_R_UpperArm"] = 1,
+    ["ValveBiped.Bip01_L_UpperArm"] = 1,
+    ["ValveBiped.Bip01_R_Forearm"] = 1,
+    ["ValveBiped.Bip01_L_Forearm"] = 1,
+    ["ValveBiped.Bip01_R_Hand"] = 2,
+    ["ValveBiped.Bip01_L_Hand"] = 2,
+}
 function ENT:Initialize()
     self:SetModel("models/error.mdl")
     self:SetNoDraw(true)
@@ -29,6 +41,7 @@ function ENT:Initialize()
     self:SetMoveType(MOVETYPE_NONE)
     self.Delta = CurTime()
     self.CycleEnd = 0.9
+    self.ScratchShadow = {}
 end
 function ENT:Setup(rag, seq, opts)
     opts = opts or {}
@@ -106,6 +119,50 @@ function ENT:Setup(rag, seq, opts)
         self.Locked = false
     end)
 end
+function ENT:SetFaceHold(on)
+    if not on then
+        self.FaceHold = nil
+        self.FaceHoldAt = nil
+        self.FaceHoldSpine = nil
+        return
+    end
+    local rag = self.Ragdoll
+    if not IsValid(rag) then return end
+    local spine = rag:LookupBone("ValveBiped.Bip01_Spine2")
+    if not spine then return end
+    self.FaceHoldSpine = rag:TranslateBoneToPhysBone(spine)
+    self.FaceHoldAt = CurTime() + FACEHOLD_DELAY
+    self.FaceHold = true
+end
+function ENT:DriveFaceHold(rag, dt, phys, kind)
+    local target
+    if kind == 2 then
+        local head = rag:LookupBone("ValveBiped.Bip01_Head1")
+        if not head then return end
+        target = rag:GetBonePosition(head)
+        if not target then return end
+        local d = target - phys:GetPos()
+        if d:LengthSqr() < 1 then return end
+        target = target - d:GetNormalized() * 2
+    else
+        local spine = rag:GetPhysicsObjectNum(self.FaceHoldSpine)
+        if not IsValid(spine) then return end
+        target = spine:GetPos() + spine:GetAngles():Right() * -50
+    end
+    local p = self.ScratchShadow
+    p.secondstoarrive = 0.001
+    p.angle = nil
+    p.maxangular = nil
+    p.maxangulardamp = nil
+    p.dampfactor = 0.9
+    p.teleportdistance = 0
+    p.deltatime = dt
+    p.pos = target
+    p.maxspeed = kind == 2 and FACEHOLD_HAND or FACEHOLD_UPPER
+    p.maxspeeddamp = FACEHOLD_DAMP
+    phys:Wake()
+    phys:ComputeShadowControl(p)
+end
 function ENT:DriveRagdoll(rag, dt)
     local k = 1
     if self.Birth then
@@ -116,14 +173,21 @@ function ENT:DriveRagdoll(rag, dt)
     local damp = SHADOW.maxspeeddamp * k
     local far = 0
     local total = 0
+    local facehold = self.FaceHold and CurTime() >= self.FaceHoldAt
     for i = 0, rag:GetPhysicsObjectCount() - 1 do
         local phys = rag:GetPhysicsObjectNum(i)
         if not IsValid(phys) then continue end
-        local bone = self:LookupBone(rag:GetBoneName(rag:TranslatePhysBoneToBone(i)))
+        local bname = rag:GetBoneName(rag:TranslatePhysBoneToBone(i))
+        local bone = self:LookupBone(bname)
         if not bone then continue end
         local pos, ang = self:GetBonePosition(bone)
         if not pos then continue end
         total = total + 1
+        local kind = facehold and FACEHOLD_BONES[bname]
+        if kind then
+            self:DriveFaceHold(rag, dt, phys, kind)
+            continue
+        end
         if phys:GetPos():DistToSqr(pos) > REACH_SQR then far = far + 1 continue end
         local tr = util.TraceLine({
             start = phys:GetPos(),
