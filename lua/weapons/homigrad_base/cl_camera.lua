@@ -199,12 +199,12 @@ function SWEP:Camera(eyePos, eyeAng, view, vellen, ply)
 	if lastPosSelected + 0.1 * (inpain and 0.1 or 1) < CurTime() then
 		lastPosSelected = CurTime()
 		--randomPos = 0.75 * VectorRand(-0.75, 0.75)
-		randomPos = (inpain and 1.5 - (1 * painmul) or 1) * ((lastzoom - CurTime() + tta) < 0 and ply.organism and ply.organism.holdingbreath and 0.25 or 1) * 0.5 * Vector(math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75))
+		randomPos = (inpain and 1.5 - (1 * painmul) or 1) * ((lastzoom - CurTime() + tta) < 0 and ply.organism and ply.organism.holdingbreath and 0.25 or 1) * 0.5 * Vector(math.random(2) == 1 and math.Rand(-0.25, -0.35) or math.Rand(0.25, 0.35), math.random(2) == 1 and math.Rand(-0.75, -0.5) or math.Rand(0.5, 0.75), math.Rand(-0.1, 0.45))
 	end
 
 	randomPosL = LerpFT(0.05 * (inpain and 25 - (24 * painmul) or 1), randomPosL, randomPos)
 	
-	scopedLerpAddvec = LerpVectorFT(((false or self.shot2 == 1) and 1 or 0.02) * (cocking and 0.25 or 1) * (inpain and 1 or 1), scopedLerpAddvec, (cocking and 1 or 1) * (justzoomed and 0.5 or 1) * (self.shot2 == 1 and 0.5 or 1) * 3 * randomPosL * slowlyZooming)
+	scopedLerpAddvec = LerpVectorFT(((self.shot2 == 1) and 1 or 0.06 - self.shot2 * 0.4) * (cocking and 0.25 or 1) * (inpain and 1 or 1), scopedLerpAddvec, (cocking and 1 or 1) * (justzoomed and 0.5 or 1) * (self.shot2 == 1 and 0.8 or 0.5) * 3 * randomPosL * slowlyZooming)
 	if true then
 		if not (ply:IsSuperAdmin() and hg_setzoompos:GetBool()) then
 			posZoom:Add(scopedLerpAddvec*(self.weight or 1)*0.22)

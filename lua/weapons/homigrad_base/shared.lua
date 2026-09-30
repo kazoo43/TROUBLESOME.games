@@ -2409,10 +2409,12 @@ SWEP.AnimList = {
 function SWEP:PlayAnim(anim, data, cycling, callback, reverse, sendtoclient)
     local start = 0
 	local time = 1
+	local callbackAdjust = 0
 
 	if istable(data) then
 		time = data[1]
 		start = data[2]
+		callbackAdjust = data[3] or 0
 	else
 		time = data or time
 	end
@@ -2433,7 +2435,7 @@ function SWEP:PlayAnim(anim, data, cycling, callback, reverse, sendtoclient)
 		
 		self.callback = callback
 		--print(self.callback)
-		timer.Create("AnimCallback"..self:EntIndex(), time or 0, 1, function()
+		timer.Create("AnimCallback"..self:EntIndex(), time - callbackAdjust or 0, 1, function()
 			if not self.callback then return end
 			self.callback(self)
 			--self.callback = nil

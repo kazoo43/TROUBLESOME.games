@@ -18,12 +18,7 @@ SWEP.AttachmentAng = Angle(0,0,0)
 SWEP.FakeAttachment = "1"
 SWEP.FakeBodyGroups = "0000"
 SWEP.FakeBodyGroupsPresets = {
-	"0000",
-	"1000",
-	"0001",
-	"1001",
-	"0006",
-	"1006",
+	"0000"
 }
 
 
@@ -258,7 +253,7 @@ function SWEP:OnVarChanged2( name, old, new )
 end
 
 function SWEP:InitializePost()
-	local Skin = math.random(0,2)
+	local Skin = 0
 	if math.random(0,100) > 99 then
 		Skin = 3
 	end

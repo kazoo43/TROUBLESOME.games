@@ -268,14 +268,14 @@ local function reloadFunc(self)
 		end
 
 		if !self.drawBullet then
-			self:PlayAnim(self.AnimList["finish_empty"], 0.3, false, function(self)
+			self:PlayAnim(self.AnimList["finish_empty"], {0.5,0,0.2}, false, function(self)
 				cock(self, 1)
 				self:PlayAnim(self.AnimList["cycle"], 1, false, function(self)
 					self:SetNetVar("shootgunReload", 0)
 				end, false, true) 
 			end, false, true) 
 		else
-			self:PlayAnim(self.AnimList["finish"], 0.3, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
+			self:PlayAnim(self.AnimList["finish"], {0.5,0,0.2}, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
 		end
 	end, false, true)
 end
@@ -317,14 +317,14 @@ function SWEP:Reload(time)
 				return
 			end
 			if !self.drawBullet then
-				self:PlayAnim(self.AnimList["finish_empty"], 0.3, false, function(self)
+				self:PlayAnim(self.AnimList["finish_empty"], {0.5,0,0.2}, false, function(self)
 					cock(self, 1)
 					self:PlayAnim(self.AnimList["cycle"], 1, false, function(self)
 						self:SetNetVar("shootgunReload", 0)
 					end, false, true) 
 				end, false, true) 
 			else
-				self:PlayAnim(self.AnimList["finish"], 0.3, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
+				self:PlayAnim(self.AnimList["finish"], {0.5,0,0.2}, false, function(self) self:SetNetVar("shootgunReload", 0) end, false, true) 
 			end
 		end,
 		false, true)
