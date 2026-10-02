@@ -8,8 +8,7 @@ SWEP.AdminOnly = false
 SWEP.HoldType = "slam"
 
 SWEP.WorldModel = "models/weapons/tfa_nmrih/w_me_bat_wood.mdl"
-SWEP.WorldModelReal = "models/weapons/tfa_nmrih/v_me_bat_metal.mdl"
-SWEP.WorldModelExchange = "models/weapons/tfa_nmrih/w_me_bat_wood.mdl"
+SWEP.WorldModelReal = "models/viewmodels/c_mw2019_bat.mdl"
 SWEP.DontChangeDropped = false
 SWEP.ViewModel = ""
 SWEP.modelscale = 1
@@ -26,7 +25,7 @@ if CLIENT then
 end
 
 SWEP.DamageType = DMG_CLUB
-SWEP.DamagePrimary = 25
+SWEP.DamagePrimary = 125
 SWEP.DamageSecondary = 10
 
 SWEP.PenetrationPrimary = 4
@@ -40,8 +39,8 @@ SWEP.PenetrationSizeSecondary = 1.5
 SWEP.StaminaPrimary = 20
 SWEP.StaminaSecondary = 10
 
-SWEP.HoldPos = Vector(-8,0,0)
-SWEP.HoldAng = Angle(0,0,-10)
+SWEP.HoldPos = Vector(-6,2,0)
+SWEP.HoldAng = Angle(0,0,0)
 
 SWEP.AttackTime = 0.27
 SWEP.AnimTime1 = 1.3
@@ -55,7 +54,7 @@ SWEP.WaitTime2 = 0.8
 SWEP.AttackLen2 = 40
 SWEP.ViewPunch2 = Angle(0,0,-2)
 
-SWEP.canchargeattack = true
+SWEP.canchargeattack = false
 SWEP.ChargeAnimTimeBegin = 0.45
 SWEP.ChargeAnimTimeIdle = 0.5
 SWEP.ChargeAnimTimeEnd = 0.8
@@ -84,10 +83,10 @@ SWEP.weaponPos = Vector(1.5,0.2,-0.2)
 SWEP.weaponAng = Angle(-79,5,-4)
 
 SWEP.AnimList = {
-    ["idle"] = "Idle",
-    ["deploy"] = "Draw",
-    ["attack"] = "Attack_Quick",
-    ["attack2"] = "Shove",
+    ["idle"] = "idle",
+    ["deploy"] = "deploy",
+    ["attack"] = "swing_ne2sw_02",
+    ["attack2"] = "secondary_swing",
 }
 
 SWEP.setlh = true

@@ -4,13 +4,19 @@ local IsValid, ents_Create = IsValid, ents.Create
 local math_random, math_Rand = math.random, math.Rand
 local VectorRand, AngleRand = VectorRand, AngleRand
 local util_PointContents, util_IsValidModel = util.PointContents, util.IsValidModel
-local LocalToWorld, ThatPlyIsFemale = LocalToWorld, ThatPlyIsFemale
+local LocalToWorld = LocalToWorld
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 
 util.AddNetworkString("ts_deathanim_headclub")
 
 local liveTeeth = {}
 local ready = false
+
+local function isFemale(ent)
+	local fn = ThatPlyIsFemale
+	if !fn then return false end
+	return fn(ent) and true or false
+end
 
 local function release(ent)
 	for i = #liveTeeth, 1, -1 do
@@ -92,7 +98,7 @@ function TS_DeathAnim.HeadGore(rag, hitPos)
 
 	rag.TS_HeadGore = true
 
-	local lpos = ThatPlyIsFemale(rag) and cfg.MouthFemale or cfg.MouthMale
+	local lpos = isFemale(rag) and cfg.MouthFemale or cfg.MouthMale
 	local pos, ang = LocalToWorld(lpos, angle_zero, mat:GetTranslation(), mat:GetAngles())
 	local vel = rag:GetVelocity()
 	local fwd = ang:Forward()

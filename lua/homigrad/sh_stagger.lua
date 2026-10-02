@@ -142,13 +142,18 @@ if SERVER then
     hook.Add("Should Fake Up", "TS_Stagger_NoGetUp", function(ply)
         if ply.tsStagger then return false end
     end)
-    hook.Add("PlayerDeath", "TS_Stagger_Clear", function(ply)
-        if not IsValid(ply) then return end
+    local function ClearStagger(ply)
         timer.Remove("TS_Stagger_" .. ply:EntIndex())
         ply.tsStagger = nil
-        ply.tsStaggerAnim = nil
         ply.tsStaggerEnd = nil
         ply:SetNWBool("TS_Staggered", false)
+        local anim = ply.tsStaggerAnim
+        ply.tsStaggerAnim = nil
+        if IsValid(anim) then anim:Remove() end
+    end
+    hook.Add("PlayerDeath", "TS_Stagger_Clear", function(ply)
+        if not IsValid(ply) then return end
+        ClearStagger(ply)
     end)
     hook.Add("PlayerDisconnected", "TS_Stagger_Disconnect", function(ply)
         if not IsValid(ply) then return end
@@ -156,11 +161,7 @@ if SERVER then
     end)
     hook.Add("PlayerSpawn", "TS_Stagger_SpawnClear", function(ply)
         if not IsValid(ply) then return end
-        timer.Remove("TS_Stagger_" .. ply:EntIndex())
-        ply.tsStagger = nil
-        ply.tsStaggerAnim = nil
-        ply.tsStaggerEnd = nil
-        ply:SetNWBool("TS_Staggered", false)
+        ClearStagger(ply)
     end)
     concommand.Add("ts_stagger", function(ply, cmd, args)
         if not IsValid(ply) then return end

@@ -2,7 +2,7 @@ TS_DeathAnim = TS_DeathAnim or {}
 
 TS_DeathAnim.HeadClub = {
 	Rate = 0.95,
-	FaceHoldChance = 0.35,
+	FaceHoldChance = 0.65,
 	Model = "models/teeth/tooth.mdl",
 	SubModels = 4,
 	BodyGroup = 0,

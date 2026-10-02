@@ -495,6 +495,12 @@ hook.Add("RagdollEntityCreated", "RagdollFinder", function(ply, ent, key)
 		ply.FakeRagdoll = IsValid(ply.FakeRagdoll) and ply.FakeRagdoll or ent
 	end
 
+	if key == "RagdollDeath" then
+		ply.OldRagdoll = nil
+		ply.FakeRagdollOld = nil
+		ply.gettingup = nil
+	end
+
 	--if key == "RagdollDeath" then ply.FakeRagdoll = nil return end
 
 	--ply:SetNWEntity("FakeRagdoll", ent)

@@ -434,9 +434,36 @@ end)
 
 hg.ragdollFake = hg.ragdollFake or {}
 --local ragdollFake = hg.ragdollFake
+
+local function GetGetUpRagdoll(ply)
+	local ragdoll = ply.OldRagdoll
+
+	if not IsValid(ragdoll) then ragdoll = ply.FakeRagdollOld end
+	if not IsValid(ragdoll) then ragdoll = hg.ragdollFake[ply] end
+
+	return IsValid(ragdoll) and ragdoll or nil
+end
+
 hook.Add("DoPlayerDeath", "Fake", function(ply)
 	local ragdoll = ply.FakeRagdoll
 	--if not IsValid(ragdoll) then return end
+	if (not ply.Removed) and not IsValid(ragdoll) then
+		ragdoll = GetGetUpRagdoll(ply)
+
+		if IsValid(ragdoll) then
+			timer.Remove("faking_up" .. ply:EntIndex())
+
+			ply.FakeRagdollOld = nil
+			ply.OldRagdoll = nil
+			ply:SetNWEntity("FakeRagdollOld", NULL)
+			hg.ragdollFake[ply] = nil
+
+			ply.FakeRagdoll = ragdoll
+
+			NET_Fake(ragdoll, ply)
+		end
+	end
+
 	if (not ply.Removed) and not IsValid(ragdoll) then
 		ragdoll = Ragdoll_Create(ply)
 		ply.FakeRagdoll = ragdoll
